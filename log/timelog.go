@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/horm/common/codec"
-	"github.com/horm/common/log/logger"
+	"github.com/horm-database/common/codec"
+	"github.com/horm-database/common/log/logger"
 )
 
 // TimeLog 耗时日志

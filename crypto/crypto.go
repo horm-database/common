@@ -4,14 +4,8 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 
-	"github.com/horm/common/types"
+	"github.com/horm-database/common/types"
 )
-
-// MD5 计算字符串的 md5 值
-func MD5(b []byte) string {
-	sumBytes := md5.Sum(b)
-	return hex.EncodeToString(sumBytes[:])
-}
 
 // MD5Str 计算字符串的 md5 值
 func MD5Str(str string) string {

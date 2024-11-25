@@ -1,9 +1,9 @@
 package filter
 
 import (
-	"github.com/horm/common/proto"
-	"github.com/horm/common/types"
-	"github.com/horm/common/util"
+	"github.com/horm-database/common/proto"
+	"github.com/horm-database/common/types"
+	"github.com/horm-database/common/util"
 )
 
 // Header 请求头部，通过 extend["request_header"] 传入插件

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/horm/common/errs"
-	"github.com/horm/common/log/logger"
+	"github.com/horm-database/common/errs"
+	"github.com/horm-database/common/log/logger"
 )
 
 // Msg is the context information for a request

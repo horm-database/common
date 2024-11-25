@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/horm/common/consts"
-	"github.com/horm/common/types"
+	"github.com/horm-database/common/consts"
+	"github.com/horm-database/common/types"
 )
 
 // Alias 别名

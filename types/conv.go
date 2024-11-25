@@ -1,73 +1,20 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"reflect"
 	"strconv"
 	"time"
 	"unsafe"
 
-	"github.com/horm/common/structspec"
+	"github.com/horm-database/common/structspec"
+
+	"github.com/spf13/cast"
 )
 
 // InterfaceToString 接口转字符串
 func InterfaceToString(value interface{}) string {
-	if value == nil {
-		return ""
-	}
-
-	switch v := value.(type) {
-	case string:
-		return v
-	case *string:
-		return *v
-	case []byte:
-		return string(v)
-	case *[]byte:
-		return string(*v)
-	case bool:
-		return fmt.Sprintf("%v", v)
-	case *bool:
-		return fmt.Sprintf("%v", *v)
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		return fmt.Sprintf("%d", v)
-	case *int:
-		return fmt.Sprintf("%d", *v)
-	case *int8:
-		return fmt.Sprintf("%d", *v)
-	case *int16:
-		return fmt.Sprintf("%d", *v)
-	case *int32:
-		return fmt.Sprintf("%d", *v)
-	case *int64:
-		return fmt.Sprintf("%d", *v)
-	case *uint:
-		return fmt.Sprintf("%d", *v)
-	case *uint8:
-		return fmt.Sprintf("%d", *v)
-	case *uint16:
-		return fmt.Sprintf("%d", *v)
-	case *uint32:
-		return fmt.Sprintf("%d", *v)
-	case *uint64:
-		return fmt.Sprintf("%d", *v)
-	case float32, float64:
-		return fmt.Sprintf("%f", v)
-	case *float32:
-		return fmt.Sprintf("%f", *v)
-	case *float64:
-		return fmt.Sprintf("%f", *v)
-	case json.Number:
-		return v.String()
-	case *json.Number:
-		return v.String()
-	case *interface{}:
-		return InterfaceToString(*v)
-	default:
-		return fmt.Sprintf("%v", v)
-	}
+	return cast.ToString(value)
 }
 
 // InterfaceToBytes 接口转字节码
@@ -77,117 +24,26 @@ func InterfaceToBytes(value interface{}) []byte {
 	}
 
 	switch v := value.(type) {
-	case string:
-		return []byte(v)
-	case *string:
-		return []byte(*v)
 	case []byte:
 		return v
 	case *[]byte:
 		return *v
-	case bool:
-		return []byte(fmt.Sprintf("%v", v))
-	case *bool:
-		return []byte(fmt.Sprintf("%v", *v))
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		return []byte(fmt.Sprintf("%d", v))
-	case *int:
-		return []byte(fmt.Sprintf("%d", v))
-	case *int8:
-		return []byte(fmt.Sprintf("%d", v))
-	case *int16:
-		return []byte(fmt.Sprintf("%d", v))
-	case *int32:
-		return []byte(fmt.Sprintf("%d", v))
-	case *int64:
-		return []byte(fmt.Sprintf("%d", v))
-	case *uint:
-		return []byte(fmt.Sprintf("%d", v))
-	case *uint8:
-		return []byte(fmt.Sprintf("%d", v))
-	case *uint16:
-		return []byte(fmt.Sprintf("%d", v))
-	case *uint32:
-		return []byte(fmt.Sprintf("%d", v))
-	case *uint64:
-		return []byte(fmt.Sprintf("%d", v))
-	case float32, float64:
-		return []byte(fmt.Sprintf("%f", v))
-	case *float32:
-		return []byte(fmt.Sprintf("%f", *v))
-	case *float64:
-		return []byte(fmt.Sprintf("%f", *v))
-	case json.Number:
-		return []byte(v.String())
-	case *json.Number:
-		return []byte(v.String())
-	case *interface{}:
-		return InterfaceToBytes(*v)
 	default:
-		return []byte(fmt.Sprintf("%v", v))
+		str := InterfaceToString(value)
+		return []byte(str)
 	}
 }
 
 func InterfaceToBool(value interface{}) bool {
-	if value == nil {
-		return false
-	}
-
 	switch v := value.(type) {
-	case string:
-		b, _ := strconv.ParseBool(v)
-		return b
-	case *string:
-		b, _ := strconv.ParseBool(*v)
-		return b
 	case []byte:
 		b, _ := strconv.ParseBool(BytesToString(v))
 		return b
 	case *[]byte:
 		b, _ := strconv.ParseBool(BytesToString(*v))
 		return b
-	case int64:
-		if v >= 1 {
-			return true
-		} else {
-			return false
-		}
-	case uint64:
-		if v >= 1 {
-			return true
-		} else {
-			return false
-		}
-	case *int64:
-		if *v >= 1 {
-			return true
-		} else {
-			return false
-		}
-	case *uint64:
-		if *v >= 1 {
-			return true
-		} else {
-			return false
-		}
-	case json.Number:
-		iv, _ := v.Int64()
-		if iv >= 1 {
-			return true
-		} else {
-			return false
-		}
-	case *json.Number:
-		iv, _ := v.Int64()
-		if iv >= 1 {
-			return true
-		} else {
-			return false
-		}
 	default:
-		str := fmt.Sprintf("%v", v)
-		b, _ := strconv.ParseBool(str)
-		return b
+		return cast.ToBool(value)
 	}
 }
 
@@ -197,68 +53,12 @@ func InterfaceToInt64(value interface{}) (int64, error) {
 	}
 
 	switch v := value.(type) {
-	case string:
-		return strconv.ParseInt(v, 10, 64)
-	case *string:
-		return strconv.ParseInt(*v, 10, 64)
 	case []byte:
 		return strconv.ParseInt(BytesToString(v), 10, 64)
 	case *[]byte:
 		return strconv.ParseInt(BytesToString(*v), 10, 64)
-	case int:
-		return int64(v), nil
-	case *int:
-		return int64(*v), nil
-	case int8:
-		return int64(v), nil
-	case *int8:
-		return int64(*v), nil
-	case int16:
-		return int64(v), nil
-	case *int16:
-		return int64(*v), nil
-	case int32:
-		return int64(v), nil
-	case *int32:
-		return int64(*v), nil
-	case uint:
-		return int64(v), nil
-	case *uint:
-		return int64(*v), nil
-	case uint8:
-		return int64(v), nil
-	case *uint8:
-		return int64(*v), nil
-	case uint16:
-		return int64(v), nil
-	case *uint16:
-		return int64(*v), nil
-	case uint32:
-		return int64(v), nil
-	case *uint32:
-		return int64(*v), nil
-	case int64:
-		return v, nil
-	case *int64:
-		return *v, nil
-	case uint64:
-		return int64(v), nil
-	case *uint64:
-		return int64(*v), nil
-	case float64:
-		return int64(v), nil
-	case *float64:
-		return int64(*v), nil
-	case float32:
-		return int64(v), nil
-	case *float32:
-		return int64(*v), nil
-	case json.Number:
-		return v.Int64()
-	case *json.Number:
-		return v.Int64()
 	default:
-		return strconv.ParseInt(fmt.Sprintf("%v", v), 10, 64)
+		return cast.ToInt64E(value)
 	}
 }
 
@@ -268,68 +68,12 @@ func InterfaceToUint64(value interface{}) (uint64, error) {
 	}
 
 	switch v := value.(type) {
-	case string:
-		return strconv.ParseUint(v, 10, 64)
-	case *string:
-		return strconv.ParseUint(*v, 10, 64)
 	case []byte:
-		return strconv.ParseUint(BytesToString(v), 10, 64)
+		return InterfaceToUint64(BytesToString(v))
 	case *[]byte:
-		return strconv.ParseUint(BytesToString(*v), 10, 64)
-	case int:
-		return uint64(v), nil
-	case *int:
-		return uint64(*v), nil
-	case int8:
-		return uint64(v), nil
-	case *int8:
-		return uint64(*v), nil
-	case int16:
-		return uint64(v), nil
-	case *int16:
-		return uint64(*v), nil
-	case int32:
-		return uint64(v), nil
-	case *int32:
-		return uint64(*v), nil
-	case uint:
-		return uint64(v), nil
-	case *uint:
-		return uint64(*v), nil
-	case uint8:
-		return uint64(v), nil
-	case *uint8:
-		return uint64(*v), nil
-	case uint16:
-		return uint64(v), nil
-	case *uint16:
-		return uint64(*v), nil
-	case uint32:
-		return uint64(v), nil
-	case *uint32:
-		return uint64(*v), nil
-	case int64:
-		return uint64(v), nil
-	case *int64:
-		return uint64(*v), nil
-	case uint64:
-		return v, nil
-	case *uint64:
-		return *v, nil
-	case float64:
-		return uint64(v), nil
-	case *float64:
-		return uint64(*v), nil
-	case float32:
-		return uint64(v), nil
-	case *float32:
-		return uint64(*v), nil
-	case json.Number:
-		return strconv.ParseUint(v.String(), 10, 64)
-	case *json.Number:
-		return strconv.ParseUint(v.String(), 10, 64)
+		return InterfaceToUint64(BytesToString(*v))
 	default:
-		return strconv.ParseUint(fmt.Sprintf("%v", v), 10, 64)
+		return cast.ToUint64E(value)
 	}
 }
 
@@ -339,109 +83,133 @@ func InterfaceToFloat64(value interface{}) (float64, error) {
 	}
 
 	switch v := value.(type) {
-	case string:
-		return strconv.ParseFloat(v, 64)
-	case *string:
-		return strconv.ParseFloat(*v, 64)
 	case []byte:
-		return strconv.ParseFloat(BytesToString(v), 64)
+		return InterfaceToFloat64(BytesToString(v))
 	case *[]byte:
-		return strconv.ParseFloat(BytesToString(*v), 64)
-	case int:
-		return float64(v), nil
-	case *int:
-		return float64(*v), nil
-	case int8:
-		return float64(v), nil
-	case *int8:
-		return float64(*v), nil
-	case int16:
-		return float64(v), nil
-	case *int16:
-		return float64(*v), nil
-	case int32:
-		return float64(v), nil
-	case *int32:
-		return float64(*v), nil
-	case uint:
-		return float64(v), nil
-	case *uint:
-		return float64(*v), nil
-	case uint8:
-		return float64(v), nil
-	case *uint8:
-		return float64(*v), nil
-	case uint16:
-		return float64(v), nil
-	case *uint16:
-		return float64(*v), nil
-	case uint32:
-		return float64(v), nil
-	case *uint32:
-		return float64(*v), nil
-	case int64:
-		return float64(v), nil
-	case *int64:
-		return float64(*v), nil
-	case uint64:
-		return float64(v), nil
-	case *uint64:
-		return float64(*v), nil
-	case float64:
-		return v, nil
-	case *float64:
-		return *v, nil
-	case float32:
-		return float64(v), nil
-	case *float32:
-		return float64(*v), nil
-	case json.Number:
-		return v.Float64()
-	case *json.Number:
-		return v.Float64()
+		return InterfaceToFloat64(BytesToString(*v))
 	default:
-		return strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
+		return cast.ToFloat64E(value)
 	}
 }
 
 func InterfaceToInt(value interface{}) (int, error) {
-	tmp, err := InterfaceToInt64(value)
-	return int(tmp), err
+	if value == nil {
+		return 0, nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return InterfaceToInt(BytesToString(v))
+	case *[]byte:
+		return InterfaceToInt(BytesToString(*v))
+	default:
+		return cast.ToIntE(value)
+	}
 }
 
 func InterfaceToInt8(value interface{}) (int8, error) {
-	tmp, err := InterfaceToInt64(value)
-	return int8(tmp), err
+	if value == nil {
+		return 0, nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return InterfaceToInt8(BytesToString(v))
+	case *[]byte:
+		return InterfaceToInt8(BytesToString(*v))
+	default:
+		return cast.ToInt8E(value)
+	}
 }
 
 func InterfaceToInt16(value interface{}) (int16, error) {
-	tmp, err := InterfaceToInt64(value)
-	return int16(tmp), err
+	if value == nil {
+		return 0, nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return InterfaceToInt16(BytesToString(v))
+	case *[]byte:
+		return InterfaceToInt16(BytesToString(*v))
+	default:
+		return cast.ToInt16E(value)
+	}
 }
 
 func InterfaceToInt32(value interface{}) (int32, error) {
-	tmp, err := InterfaceToInt64(value)
-	return int32(tmp), err
+	if value == nil {
+		return 0, nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return InterfaceToInt32(BytesToString(v))
+	case *[]byte:
+		return InterfaceToInt32(BytesToString(*v))
+	default:
+		return cast.ToInt32E(value)
+	}
 }
 
 func InterfaceToUint(value interface{}) (uint, error) {
-	tmp, err := InterfaceToInt64(value)
-	return uint(tmp), err
+	if value == nil {
+		return 0, nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return InterfaceToUint(BytesToString(v))
+	case *[]byte:
+		return InterfaceToUint(BytesToString(*v))
+	default:
+		return cast.ToUintE(value)
+	}
 }
 
 func InterfaceToUint8(value interface{}) (uint8, error) {
-	tmp, err := InterfaceToInt64(value)
-	return uint8(tmp), err
+	if value == nil {
+		return 0, nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return InterfaceToUint8(BytesToString(v))
+	case *[]byte:
+		return InterfaceToUint8(BytesToString(*v))
+	default:
+		return cast.ToUint8E(value)
+	}
 }
 
 func InterfaceToUint16(value interface{}) (uint16, error) {
-	tmp, err := InterfaceToInt64(value)
-	return uint16(tmp), err
+	if value == nil {
+		return 0, nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return InterfaceToUint16(BytesToString(v))
+	case *[]byte:
+		return InterfaceToUint16(BytesToString(*v))
+	default:
+		return cast.ToUint16E(value)
+	}
 }
 
 func InterfaceToUint32(value interface{}) (uint32, error) {
-	tmp, err := InterfaceToInt64(value)
-	return uint32(tmp), err
+	if value == nil {
+		return 0, nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return InterfaceToUint32(BytesToString(v))
+	case *[]byte:
+		return InterfaceToUint32(BytesToString(*v))
+	default:
+		return cast.ToUint32E(value)
+	}
 }
 
 func InterfaceToTime(value interface{}, layout string, loc ...*time.Location) (time.Time, error) {
@@ -449,25 +217,24 @@ func InterfaceToTime(value interface{}, layout string, loc ...*time.Location) (t
 		return time.Time{}, nil
 	}
 
-	switch val := value.(type) {
-	case time.Time:
-		return val, nil
-	case *time.Time:
-		if val == nil {
-			return time.Time{}, nil
-		} else {
-			return *val, nil
-		}
+	switch v := value.(type) {
+	case []byte:
+		return InterfaceToTime(BytesToString(v), layout, loc...)
+	case *[]byte:
+		return InterfaceToTime(BytesToString(*v), layout, loc...)
 	default:
-		str := InterfaceToString(value)
-
 		l := time.Local
 		if len(loc) > 0 {
 			l = loc[0]
 		}
 
-		return time.ParseInLocation(layout, str, l)
+		if layout != "" {
+			return time.ParseInLocation(layout, InterfaceToString(value), l)
+		}
+
+		return cast.ToTimeInDefaultLocationE(value, l)
 	}
+
 }
 
 // InterfaceToArray 接口转数组

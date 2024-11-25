@@ -3,7 +3,7 @@ package proto
 import (
 	"strconv"
 
-	"github.com/horm/common/errs"
+	"github.com/horm-database/common/errs"
 )
 
 // QueryResp 返回请求

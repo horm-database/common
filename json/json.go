@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/horm/common/types"
+	"github.com/horm-database/common/types"
 
 	"github.com/json-iterator/go"
 )

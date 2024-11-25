@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/horm/common/codec"
-	"github.com/horm/common/errs"
-	"github.com/horm/common/log/logger"
+	"github.com/horm-database/common/codec"
+	"github.com/horm-database/common/errs"
+	"github.com/horm-database/common/log/logger"
 )
 
 // GetLogger 从上下文中获取logger

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/horm/common/consts"
-	"github.com/horm/common/types"
+	"github.com/horm-database/common/consts"
+	"github.com/horm-database/common/types"
 )
 
 // FormatData 根据类型格式化数据

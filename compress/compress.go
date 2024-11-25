@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"sync"
 
-	"github.com/horm/common/json"
+	"github.com/horm-database/common/json"
 )
 
 var (

@@ -8,11 +8,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/horm/common/consts"
-	"github.com/horm/common/errs"
-	"github.com/horm/common/log"
-	"github.com/horm/common/types"
-	"github.com/horm/common/url"
+	"github.com/horm-database/common/consts"
+	"github.com/horm-database/common/errs"
+	"github.com/horm-database/common/log"
+	"github.com/horm-database/common/types"
+	"github.com/horm-database/common/url"
 )
 
 type DBAddress struct {
