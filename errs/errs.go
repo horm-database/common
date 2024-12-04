@@ -232,7 +232,7 @@ func SetErrorCode(err error, defaultCode int) error {
 	return err
 }
 
-// SetErrorMsg 设置默认 code
+// SetErrorMsg 设置错误消息
 func SetErrorMsg(err error, msg string) error {
 	if err == nil {
 		return nil
@@ -251,11 +251,32 @@ func SetErrorMsg(err error, msg string) error {
 	return e
 }
 
+// SetErrorSQL 设置
+func SetErrorSQL(err error, sql string) error {
+	if err == nil {
+		return nil
+	}
+
+	e, ok := err.(*Error)
+	if !ok {
+		return &Error{
+			Type: ErrorTypeSystem,
+			Code: RetUnknown,
+			Msg:  "",
+			SQL:  sql,
+		}
+	}
+
+	e.SQL = sql
+	return e
+}
+
 // Error error 结构体
 type Error struct {
 	Type int8
 	Code int
 	Msg  string
+	SQL  string //发生 error 时的 sql 语句
 }
 
 // Error error 信息
@@ -264,7 +285,11 @@ func (e *Error) Error() string {
 		return "success"
 	}
 
-	return fmt.Sprintf("type:%s, code:%d, msg:%s", typeDesc(e.Type), e.Code, e.Msg)
+	if e.SQL != "" {
+		return fmt.Sprintf("type:%s, code:%d, msg:%s, sql=[%s]", typeDesc(e.Type), e.Code, e.Msg, e.SQL)
+	} else {
+		return fmt.Sprintf("type:%s, code:%d, msg:%s", typeDesc(e.Type), e.Code, e.Msg)
+	}
 }
 
 // Format 实现 fmt.Formatter 接口

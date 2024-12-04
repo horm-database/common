@@ -48,6 +48,7 @@ const (
 	OpDelete      = "delete"
 	OpFind        = "find"
 	OpFindAll     = "find_all"
+	OpCount       = "count"
 	OpTransaction = "transaction"
 
 	// ddl
