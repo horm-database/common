@@ -37,4 +37,5 @@ message Error {
   int32  type = 1; //错误类型
   int32  code = 2; //错误码
   string msg = 3;  //错误信息
+  string sql = 4;  //异常sql语句
 }

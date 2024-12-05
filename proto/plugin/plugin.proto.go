@@ -1,4 +1,4 @@
-package filter
+package plugin
 
 import (
 	"github.com/horm-database/common/proto"
@@ -35,7 +35,7 @@ type Request struct {
 
 	// group by
 	Group  []string  `json:"group,omitempty"`  // group by
-	Having types.Map `json:"having,omitempty"` // group by filter condition
+	Having types.Map `json:"having,omitempty"` // group by condition
 
 	// for some other databases such as elastic ...
 	Type   string        `json:"type,omitempty"`   // type, such as elastic`s type, it can be customized before v7, and unified as _doc after v7
@@ -55,7 +55,7 @@ type Request struct {
 	// query
 	Query string `json:"query,omitempty"` // 直接送 query 语句，需要拥有库的 表权限、或 root 权限。具体参数为 args
 
-	// db address will be changing if Addr is set by filter
+	// db address will be changing if Addr is set by plugin
 	Addr *util.DBAddress
 }
 

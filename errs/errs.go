@@ -83,13 +83,13 @@ const (
 	RetRedisDecodeFailed = 571 //redis 结果解码 失败
 
 	// 插件错误
-	RetFilterConfigDecode    = 601 // 插件配置解压失败
-	RetFilterNotFind         = 602 // 未找到插件
-	RetFilterFuncNotRegister = 603 // 插件函数未注册
-	RetFilterHandle          = 604 // 插件执行异常
-	RetFilterConfigInvalid   = 605 // 插件配置异常
-	RetFilterParamCopy       = 606 // 异步插件参数备份异常
-	RetFilterFrontNotFind    = 607 // 插件先决执行插件未找到
+	RetPluginConfigDecode    = 601 // 插件配置解压失败
+	RetPluginNotFind         = 602 // 未找到插件
+	RetPluginFuncNotRegister = 603 // 插件函数未注册
+	RetPluginHandle          = 604 // 插件执行异常
+	RetPluginConfigInvalid   = 605 // 插件配置异常
+	RetPluginParamCopy       = 606 // 异步插件参数备份异常
+	RetPluginFrontNotFind    = 607 // 插件先决执行插件未找到
 
 	// 其他错误
 	RetOpNotSupport  = 801 // 该数据库不支持该操作
@@ -103,14 +103,14 @@ const (
 // ErrorType 错误类型
 const (
 	ErrorTypeSystem   = 0 //系统错误
-	ErrorTypeFilter   = 1 //插件错误
+	ErrorTypePlugin   = 1 //插件错误
 	ErrorTypeDatabase = 2 //数据库错误
 )
 
 func typeDesc(t int8) string {
 	switch t {
-	case ErrorTypeFilter:
-		return "filter"
+	case ErrorTypePlugin:
+		return "plugin"
 	case ErrorTypeDatabase:
 		return "database"
 	default:

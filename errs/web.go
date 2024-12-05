@@ -39,10 +39,10 @@ const ( // web 错误
 	RetWebNotFindTable    = 1081 // 未找到表
 	RetWebCantCreateTable = 1082 // 无建表权限
 
-	RetWebNotFindFilter = 1091 // 未找到插件
-	RetWebIsFirstFilter = 1092 // 这是第一个插件，front 必须为0
+	RetWebNotFindPlugin = 1091 // 未找到插件
+	RetWebIsFirstPlugin = 1092 // 这是第一个插件，front 必须为0
 
-	RetWebNotFindTableFilter = 1101
+	RetWebNotFindTablePlugin = 1101
 
 	RetWebNotFindApp = 1201
 

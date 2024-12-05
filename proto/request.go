@@ -26,7 +26,7 @@ type Unit struct {
 
 	// group by
 	Group  []string               `json:"group,omitempty"`  // group by
-	Having map[string]interface{} `json:"having,omitempty"` // group by filter condition
+	Having map[string]interface{} `json:"having,omitempty"` // group by condition
 
 	// for databases such as elastic ...
 	Type   string  `json:"type,omitempty"`   // type, such as elastic`s type, it can be customized before v7, and unified as _doc after v7
