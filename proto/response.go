@@ -22,10 +22,15 @@ type PageResult struct {
 
 // CompResult 混合查询返回结果
 type CompResult struct {
-	Error  *Error      `orm:"error,omitempty" json:"error,omitempty"`   // 错误返回
-	IsNil  bool        `orm:"is_nil,omitempty" json:"is_nil,omitempty"` // 是否为空
-	Detail *Detail     `orm:"detail,omitempty" json:"detail,omitempty"` // 查询细节信息
-	Data   interface{} `orm:"data" json:"data"`                         // 返回数据
+	CompBase             // 返回结果基础信息
+	Data     interface{} `json:"data"` // 返回数据
+}
+
+// CompBase 混合查询返回结果基础信息
+type CompBase struct {
+	Error  *Error  `json:"error,omitempty"`  // 错误返回
+	IsNil  bool    `json:"is_nil,omitempty"` // 是否为空
+	Detail *Detail `json:"detail,omitempty"` // 查询细节信息
 }
 
 // Detail 其他查询细节信息，例如 分页信息、滚动翻页信息、其他信息等。
