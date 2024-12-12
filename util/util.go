@@ -47,27 +47,6 @@ func RemoveComments(key string) string {
 	return strings.TrimSpace(key[0:index])
 }
 
-// PathAndField 获取路径和字段
-func PathAndField(referer string) (refererPath, refererField string) {
-	refererPath = referer
-
-	if strings.Index(referer, "../") != -1 {
-		referer = strings.Replace(referer, "../", "", -1)
-	}
-
-	if strings.Index(referer, "./") != -1 {
-		referer = strings.Replace(referer, "./", "", -1)
-	}
-
-	index := strings.Index(referer, ".")
-	if index != -1 {
-		refererField = referer[index+1:]
-		refererPath = strings.TrimSuffix(refererPath, "."+refererField)
-	}
-
-	return
-}
-
 // IsRelation 是否关系连接词
 func IsRelation(dbType int, key string) int8 {
 	switch key { //为了性能，先不做 ToUpper，先大小都做比较，如果匹配，再 ToUpper
