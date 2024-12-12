@@ -48,14 +48,24 @@ func RemoveComments(key string) string {
 }
 
 // PathAndField 获取路径和字段
-func PathAndField(refer string) (string, string) {
-	index := strings.Index(refer, ".")
+func PathAndField(referer string) (refererPath, refererField string) {
+	refererPath = referer
 
-	if index == -1 {
-		return refer, ""
+	if strings.Index(referer, "../") != -1 {
+		referer = strings.Replace(referer, "../", "", -1)
 	}
 
-	return refer[0:index], refer[index+1:]
+	if strings.Index(referer, "./") != -1 {
+		referer = strings.Replace(referer, "./", "", -1)
+	}
+
+	index := strings.Index(referer, ".")
+	if index != -1 {
+		refererField = referer[index+1:]
+		refererPath = strings.TrimSuffix(refererPath, "."+refererField)
+	}
+
+	return
 }
 
 // IsRelation 是否关系连接词
