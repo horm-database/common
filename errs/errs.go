@@ -54,10 +54,11 @@ const (
 	RetNotFindReferer       = 309 // 未找到被引用的执行单元
 	RetRefererMustBeString  = 310 // 引用必须是 string
 	RetRefererUnitFailed    = 311 // 被引用的执行单元查询失败
-	RetRefererResultType    = 312 // 被引用的执行单元结果类型不符
-	RetRefererFieldNotExist = 313 // 被引用的执行单元结果中不包含引用字段
-	RetFormatDataError      = 314 // 数据格式化失败
-	RetSameTransaction      = 315 // 事务重复定义
+	RetRefererUnitNotExec   = 312 // 被引用的执行单元未执行
+	RetRefererResultType    = 313 // 被引用的执行单元结果类型不符
+	RetRefererFieldNotExist = 314 // 被引用的执行单元结果中不包含引用字段
+	RetFormatDataError      = 315 // 数据格式化失败
+	RetSameTransaction      = 316 // 事务重复定义
 
 	// 权限错误
 	RetServerAuthFail    = 401 // 鉴权失败

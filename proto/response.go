@@ -22,12 +22,12 @@ type PageResult struct {
 
 // CompResult 混合查询返回结果
 type CompResult struct {
-	CompBase             // 返回结果基础信息
-	Data     interface{} `json:"data"` // 返回数据
+	RetBase             // 返回基础信息
+	Data    interface{} `json:"data"` // 返回数据
 }
 
-// CompBase 混合查询返回结果基础信息
-type CompBase struct {
+// RetBase 混合查询返回结果基础信息
+type RetBase struct {
 	Detail *Detail `json:"detail,omitempty"` // 查询细节信息
 	IsNil  bool    `json:"is_nil,omitempty"` // 是否为空
 	Error  *Error  `json:"error,omitempty"`  // 错误返回
@@ -43,8 +43,8 @@ type Detail struct {
 	Extras    map[string]interface{} `orm:"extras,omitempty" json:"extras,omitempty"`         // 更多详细信息
 }
 
-// ModResult 新增/更新返回信息
-type ModResult struct {
+// ModRet 新增/更新返回信息
+type ModRet struct {
 	ID          ID                     `orm:"id,omitempty" json:"id,omitempty"`                       // id 主键，可能是 mysql 的最后自增id，last_insert_id 或 elastic 的 _id 等，类型可能是 int64、string
 	RowAffected int64                  `orm:"rows_affected,omitempty" json:"rows_affected,omitempty"` // 影响行数
 	Version     int64                  `orm:"version,omitempty" json:"version,omitempty"`             // 数据版本
