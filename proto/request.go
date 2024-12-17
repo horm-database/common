@@ -4,7 +4,7 @@ import (
 	"github.com/horm-database/common/consts"
 )
 
-// Unit 查询单元
+// Unit 查询单元（执行单元）
 type Unit struct {
 	// query base info
 	Name  string   `json:"name,omitempty"`  // name
@@ -55,6 +55,6 @@ type Unit struct {
 
 // Scroll 滚动查询
 type Scroll struct {
-	Info string `json:"info,omitempty"` // 滚动查询信息，如时间
 	ID   string `json:"id,omitempty"`   // 滚动 id
+	Info string `json:"info,omitempty"` // 滚动查询信息，如时间
 }

@@ -61,8 +61,8 @@ type Request struct {
 
 // Response 插件返回信息
 type Response struct {
+	Error  error         // 返回错误
 	IsNil  bool          // 结果是否为空数据
 	Detail *proto.Detail // 查询细节信息
 	Result interface{}   // 返回结果
-	Error  error         // 返回错误
 }

@@ -28,9 +28,9 @@ type CompResult struct {
 
 // RetBase 混合查询返回结果基础信息
 type RetBase struct {
-	Detail *Detail `json:"detail,omitempty"` // 查询细节信息
-	IsNil  bool    `json:"is_nil,omitempty"` // 是否为空
 	Error  *Error  `json:"error,omitempty"`  // 错误返回
+	IsNil  bool    `json:"is_nil,omitempty"` // 是否为空
+	Detail *Detail `json:"detail,omitempty"` // 查询细节信息
 }
 
 // Detail 其他查询细节信息，例如 分页信息、滚动翻页信息、其他信息等。
