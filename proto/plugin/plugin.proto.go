@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"github.com/horm-database/common/proto"
+	"github.com/horm-database/common/proto/sql"
 	"github.com/horm-database/common/types"
 	"github.com/horm-database/common/util"
 )
@@ -36,6 +37,9 @@ type Request struct {
 	// group by
 	Group  []string  `json:"group,omitempty"`  // group by
 	Having types.Map `json:"having,omitempty"` // group by condition
+
+	// for some other databases such as mysql ...
+	Join []*sql.Join `json:"join,omitempty"`
 
 	// for some other databases such as elastic ...
 	Type   string        `json:"type,omitempty"`   // type, such as elastic`s type, it can be customized before v7, and unified as _doc after v7

@@ -2,6 +2,7 @@ package proto
 
 import (
 	"github.com/horm-database/common/consts"
+	"github.com/horm-database/common/proto/sql"
 )
 
 // Unit 查询单元（执行单元）
@@ -28,6 +29,9 @@ type Unit struct {
 	Group  []string               `json:"group,omitempty"`  // group by
 	Having map[string]interface{} `json:"having,omitempty"` // group by condition
 
+	// for databases such as mysql ...
+	Join []*sql.Join `json:"join,omitempty"`
+
 	// for databases such as elastic ...
 	Type   string  `json:"type,omitempty"`   // type, such as elastic`s type, it can be customized before v7, and unified as _doc after v7
 	Scroll *Scroll `json:"scroll,omitempty"` // scroll info
@@ -40,7 +44,7 @@ type Unit struct {
 	// bytes 字节流
 	Bytes []byte `json:"bytes,omitempty"`
 
-	// params 与数据库特性相关的附加参数，例如 mysql 的join，redis 的 WITHSCORES，以及 elastic 的 refresh、collapse、runtime_mappings、track_total_hits 等等。
+	// params 与数据库特性相关的附加参数，例如 redis 的 WITHSCORES，以及 elastic 的 refresh、collapse、runtime_mappings、track_total_hits 等等。
 	Params map[string]interface{} `json:"params,omitempty"`
 
 	// 直接送 Query 语句，需要拥有库的 表权限、或 root 权限。具体参数为 args
