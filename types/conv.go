@@ -309,9 +309,9 @@ func InterfaceToMap(value interface{}) (map[string]interface{}, error) {
 		}
 
 		return result, nil
+	default:
+		return map[string]interface{}{}, errors.New("value is not map")
 	}
-
-	return map[string]interface{}{}, errors.New("value is not map")
 }
 
 // InterfaceToStringArray 接口转字符串数组
