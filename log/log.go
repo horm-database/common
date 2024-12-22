@@ -100,7 +100,7 @@ func Fatal(ctx context.Context, args ...interface{}) {
 	GetLogger(msg).Error(fmt.Sprint(args...),
 		logger.Field{"files", GetTraceback()},
 		logger.Field{"seq", msg.LogSeq()},
-		logger.Field{"code", errs.RetPanic})
+		logger.Field{"code", errs.ErrPanic})
 }
 
 // Fatalf fatal 日志
@@ -111,7 +111,7 @@ func Fatalf(ctx context.Context, format string, args ...interface{}) {
 	GetLogger(msg).Error(fmt.Sprintf(format, args...),
 		logger.Field{"files", GetTraceback()},
 		logger.Field{"seq", msg.LogSeq()},
-		logger.Field{"code", errs.RetPanic})
+		logger.Field{"code", errs.ErrPanic})
 }
 
 // DebugWith 调试日志，带用户自定义上报字段 addFields
@@ -234,7 +234,7 @@ func FatalWith(ctx context.Context, addFields []logger.Field, args ...interface{
 	fields := []logger.Field{
 		{"files", GetTraceback()},
 		{"seq", msg.LogSeq()},
-		{"code", errs.RetPanic},
+		{"code", errs.ErrPanic},
 	}
 
 	fields = append(fields, addFields...)
@@ -250,7 +250,7 @@ func FatalWithf(ctx context.Context, addFields []logger.Field, format string, ar
 	fields := []logger.Field{
 		{"files", GetTraceback()},
 		{"seq", msg.LogSeq()},
-		{"code", errs.RetPanic},
+		{"code", errs.ErrPanic},
 	}
 
 	fields = append(fields, addFields...)

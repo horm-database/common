@@ -206,7 +206,7 @@ func GetLocalIP() string {
 		func() {
 			addrs, err := net.InterfaceAddrs()
 			if err != nil {
-				log.Error(context.Background(), errs.RetSystem, "get local address error")
+				log.Error(context.Background(), errs.ErrSystem, "get local address error")
 				return
 			}
 

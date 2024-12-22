@@ -90,7 +90,7 @@ func (id ID) Uint64() uint64 {
 
 func (x *Error) ToError() *errs.Error {
 	return &errs.Error{
-		Type: int8(x.Type),
+		Type: errs.EType(x.Type),
 		Code: int(x.Code),
 		Msg:  x.Msg,
 	}

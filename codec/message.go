@@ -258,8 +258,8 @@ func (m *Msg) ServerRespError() *errs.Error {
 	e, ok := m.serverRespError.(*errs.Error)
 	if !ok {
 		return &errs.Error{
-			Type: errs.ErrorTypeSystem,
-			Code: errs.RetUnknown,
+			Type: errs.ETypeSystem,
+			Code: errs.ErrUnknown,
 			Msg:  m.serverRespError.Error(),
 		}
 	}
