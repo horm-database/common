@@ -99,7 +99,7 @@ const (
 	ErrRedisDo     = 570 //redis do error
 	ErrRedisDecode = 571 //redis 结果解码 失败
 
-	// ErrPluginConfigDecode 插件错误
+	// 插件错误
 	ErrPluginConfigDecode    = 601 // 插件配置解压失败
 	ErrPluginNotFound        = 602 // 未找到插件
 	ErrPluginFuncNotRegister = 603 // 插件函数未注册
@@ -168,6 +168,24 @@ func NewDBError(code int, msg string) error {
 func NewDBErrorf(code int, format string, params ...interface{}) error {
 	return &Error{
 		Type: ETypeDatabase,
+		Code: code,
+		Msg:  fmt.Sprintf(format, params...),
+	}
+}
+
+// NewPluginError 创建一个插件错误
+func NewPluginError(code int, msg string) error {
+	return &Error{
+		Type: ETypePlugin,
+		Code: code,
+		Msg:  msg,
+	}
+}
+
+// NewPluginErrorf 创建一个格式化插件错误
+func NewPluginErrorf(code int, format string, params ...interface{}) error {
+	return &Error{
+		Type: ETypePlugin,
 		Code: code,
 		Msg:  fmt.Sprintf(format, params...),
 	}
@@ -247,7 +265,7 @@ func SetErrorType(err error, typ EType) error {
 	return err
 }
 
-// SetErrorCode 设置默认 code
+// SetErrorCode 设置 error code
 func SetErrorCode(err error, code int) error {
 	if err == nil {
 		return nil

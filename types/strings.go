@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"unicode/utf8"
 )
 
 func SplitInt(s, sep string) []int {
@@ -176,118 +175,23 @@ func LastWord(key string, n int) string {
 	return key[l-n:]
 }
 
+var replacerLFCRToQuote = strings.NewReplacer("\n", "\\n", "\r", "\\r")
+
 // QuickReplaceLFCR 替换 \r(回车)、\n(换行) 为字符串 `\r`、`\n`
-func QuickReplaceLFCR(b []byte) string {
-	var j, k int
-	var indexs []int
-
-	var l = len(b)
-
-	for {
-		c, size := utf8.DecodeRune(b[j:])
-
-		if c == '\r' || c == '\n' {
-			indexs = append(indexs, j)
-		}
-
-		j += size
-		if j >= l {
-			break
-		}
-	}
-
-	if len(indexs) > 0 {
-		var ret = make([]byte, len(b)+len(indexs))
-
-		j = 0
-
-		for _, index := range indexs {
-			if index != j {
-				copy(ret[k:], b[j:index])
-				k += index - j
-				j = index
-			}
-
-			if b[j] == '\r' {
-				copy(ret[k:], "\\r")
-			} else {
-				copy(ret[k:], "\\n")
-			}
-			k += 2
-			j++
-		}
-
-		if j < l {
-			copy(ret[k:], b[j:])
-		}
-		return BytesToString(ret)
-	} else {
-		return BytesToString(b)
-	}
+func QuickReplaceLFCR(str string) string {
+	return replacerLFCRToQuote.Replace(str)
 }
+
+var replacerLFCRToSpace = strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ")
 
 // QuickReplaceLFCR2Space 替换 \r(回车)、\n(换行) 为空格
 func QuickReplaceLFCR2Space(b []byte) string {
-	var j int
-
-	var l = len(b)
-
-	for {
-		c, size := utf8.DecodeRune(b[j:])
-
-		if c == '\r' || c == '\n' {
-			b[j] = ' '
-		}
-
-		j += size
-		if j >= l {
-			break
-		}
-	}
-
-	return BytesToString(b)
+	return replacerLFCRToSpace.Replace(string(b))
 }
+
+var replacerLFCRToEmpty = strings.NewReplacer("\n", "", "\r", "")
 
 // QuickRemoveLFCR 去掉 \r(回车)、\n(换行)
 func QuickRemoveLFCR(b []byte) string {
-	var j, k int
-	var indexs []int
-
-	var l = len(b)
-
-	for {
-		c, size := utf8.DecodeRune(b[j:])
-
-		if c == '\r' || c == '\n' {
-			indexs = append(indexs, j)
-		}
-
-		j += size
-		if j >= l {
-			break
-		}
-	}
-
-	if len(indexs) > 0 {
-		var ret = make([]byte, len(b)-len(indexs))
-
-		j = 0
-
-		for _, index := range indexs {
-			if index != j {
-				copy(ret[k:], b[j:index])
-				k += index - j
-				j = index
-			}
-
-			j++
-		}
-
-		if j < l {
-			copy(ret[k:], b[j:])
-		}
-		return BytesToString(ret)
-	} else {
-		return BytesToString(b)
-	}
+	return replacerLFCRToEmpty.Replace(string(b))
 }
