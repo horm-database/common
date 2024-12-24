@@ -22,10 +22,10 @@ import (
 )
 
 const (
-	Success    = 0    // 成功
-	ErrSystem  = 1    // 服务端系统异常
-	ErrPanic   = 8888 // panic
-	ErrUnknown = 9999 // 未知错误
+	Success    = 0 // 成功
+	ErrSystem  = 1 // 服务端系统异常
+	ErrPanic   = 8 // panic
+	ErrUnknown = 9 // 未知错误
 
 	// 客户端错误
 	ErrClientReadFrame = 11 // 客户端帧读取失败
@@ -155,8 +155,8 @@ func Newf(code int, format string, params ...interface{}) error {
 	}
 }
 
-// NewDBError 创建一个数据库错误
-func NewDBError(code int, msg string) error {
+// NewDB 创建一个数据库错误
+func NewDB(code int, msg string) error {
 	return &Error{
 		Type: ETypeDatabase,
 		Code: code,
@@ -164,8 +164,8 @@ func NewDBError(code int, msg string) error {
 	}
 }
 
-// NewDBErrorf 创建一个格式化数据库错误
-func NewDBErrorf(code int, format string, params ...interface{}) error {
+// NewDBf 创建一个格式化数据库错误
+func NewDBf(code int, format string, params ...interface{}) error {
 	return &Error{
 		Type: ETypeDatabase,
 		Code: code,
@@ -173,8 +173,8 @@ func NewDBErrorf(code int, format string, params ...interface{}) error {
 	}
 }
 
-// NewPluginError 创建一个插件错误
-func NewPluginError(code int, msg string) error {
+// NewPlugin 创建一个插件错误
+func NewPlugin(code int, msg string) error {
 	return &Error{
 		Type: ETypePlugin,
 		Code: code,
@@ -182,8 +182,8 @@ func NewPluginError(code int, msg string) error {
 	}
 }
 
-// NewPluginErrorf 创建一个格式化插件错误
-func NewPluginErrorf(code int, format string, params ...interface{}) error {
+// NewPluginf 创建一个格式化插件错误
+func NewPluginf(code int, format string, params ...interface{}) error {
 	return &Error{
 		Type: ETypePlugin,
 		Code: code,
@@ -244,24 +244,25 @@ func Sql(e error) string {
 		return ""
 	}
 
-	return err.SQL
+	return err.Sql
 }
 
-// SetErrorType 设置类型
+// SetErrorType 设置 error type
 func SetErrorType(err error, typ EType) error {
 	if err == nil {
 		return nil
 	}
 
-	if Type(err) != typ {
+	e, ok := err.(*Error)
+	if !ok {
 		return &Error{
 			Type: typ,
-			Code: Code(err),
-			Msg:  Msg(err),
-			SQL:  Sql(err),
+			Code: ErrUnknown,
+			Msg:  err.Error(),
 		}
 	}
 
+	e.Type = typ
 	return err
 }
 
@@ -271,16 +272,17 @@ func SetErrorCode(err error, code int) error {
 		return nil
 	}
 
-	if Code(err) != code {
+	e, ok := err.(*Error)
+	if !ok {
 		return &Error{
-			Type: Type(err),
+			Type: ETypeSystem,
 			Code: code,
-			Msg:  Msg(err),
-			SQL:  Sql(err),
+			Msg:  err.Error(),
 		}
 	}
 
-	return err
+	e.Code = code
+	return e
 }
 
 // SetErrorMsg 设置错误消息
@@ -295,7 +297,6 @@ func SetErrorMsg(err error, msg string) error {
 			Type: ETypeSystem,
 			Code: ErrUnknown,
 			Msg:  msg,
-			SQL:  "",
 		}
 	}
 
@@ -303,8 +304,8 @@ func SetErrorMsg(err error, msg string) error {
 	return e
 }
 
-// SetErrorSQL 设置
-func SetErrorSQL(err error, sql string) error {
+// SetErrorSql 设置错误语句
+func SetErrorSql(err error, sql string) error {
 	if err == nil {
 		return nil
 	}
@@ -312,14 +313,14 @@ func SetErrorSQL(err error, sql string) error {
 	e, ok := err.(*Error)
 	if !ok {
 		return &Error{
-			Type: ETypeSystem,
+			Type: ETypeDatabase,
 			Code: ErrUnknown,
-			Msg:  "",
-			SQL:  sql,
+			Msg:  err.Error(),
+			Sql:  sql,
 		}
 	}
 
-	e.SQL = sql
+	e.Sql = sql
 	return e
 }
 
@@ -328,7 +329,7 @@ type Error struct {
 	Type EType
 	Code int
 	Msg  string
-	SQL  string //发生 error 时的 sql 语句
+	Sql  string //发生 error 时的 sql 语句
 }
 
 // Error error 信息
@@ -337,8 +338,8 @@ func (e *Error) Error() string {
 		return "success"
 	}
 
-	if e.SQL != "" {
-		return fmt.Sprintf("type:%s, code:%d, msg:%s, sql=[%s]", typeDesc(e.Type), e.Code, e.Msg, e.SQL)
+	if e.Sql != "" {
+		return fmt.Sprintf("type:%s, code:%d, msg:%s, sql=[%s]", typeDesc(e.Type), e.Code, e.Msg, e.Sql)
 	} else {
 		return fmt.Sprintf("type:%s, code:%d, msg:%s", typeDesc(e.Type), e.Code, e.Msg)
 	}
@@ -350,7 +351,12 @@ func (e *Error) Format(s fmt.State, verb rune) {
 	case 'v':
 		if s.Flag('+') {
 			if e.Msg != "" {
-				msg := fmt.Sprintf("type:%s, code:%d, msg:%s", typeDesc(e.Type), e.Code, e.Msg)
+				var msg string
+				if e.Sql != "" {
+					msg = fmt.Sprintf("type:%s, code:%d, msg:%s, sql=[%s]", typeDesc(e.Type), e.Code, e.Msg, e.Sql)
+				} else {
+					msg = fmt.Sprintf("type:%s, code:%d, msg:%s", typeDesc(e.Type), e.Code, e.Msg)
+				}
 				_, _ = io.WriteString(s, msg)
 			}
 			return

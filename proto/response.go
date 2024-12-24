@@ -107,5 +107,6 @@ func (x *Error) ToError() *errs.Error {
 		Type: errs.EType(x.Type),
 		Code: int(x.Code),
 		Msg:  x.Msg,
+		Sql:  x.Sql,
 	}
 }

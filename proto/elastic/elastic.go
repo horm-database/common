@@ -14,7 +14,8 @@
 
 package elastic
 
-type ItemInfo struct {
+// MetaInfo elastic 数据元信息
+type MetaInfo struct {
 	Score  *float64   `json:"_score,omitempty"`  // computed score
 	Index  string     `json:"_index,omitempty"`  // index name
 	Type   string     `json:"_type,omitempty"`   // type meta field
