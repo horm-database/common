@@ -19,12 +19,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/horm-database/common/consts"
+	"github.com/horm-database/common/structs"
 	"github.com/horm-database/common/types"
 )
 
 // FormatData 根据类型格式化数据
-func FormatData(attributes map[string]interface{}, typeMap map[string]consts.DataType) (map[string]interface{}, error) {
+func FormatData(attributes map[string]interface{}, typeMap map[string]structs.Type) (map[string]interface{}, error) {
 	if len(attributes) == 0 || len(typeMap) == 0 {
 		return attributes, nil
 	}
@@ -41,7 +41,7 @@ func FormatData(attributes map[string]interface{}, typeMap map[string]consts.Dat
 }
 
 // FormatDatas 根据类型格式化数据
-func FormatDatas(datas []map[string]interface{}, typeMap map[string]consts.DataType) ([]map[string]interface{}, error) {
+func FormatDatas(datas []map[string]interface{}, typeMap map[string]structs.Type) ([]map[string]interface{}, error) {
 	if len(datas) == 0 || len(typeMap) == 0 {
 		return datas, nil
 	}
@@ -60,7 +60,7 @@ func FormatDatas(datas []map[string]interface{}, typeMap map[string]consts.DataT
 }
 
 // GetDataByType 获取数据的真实类型
-func GetDataByType(key string, value interface{}, typeMap map[string]consts.DataType) (interface{}, error) {
+func GetDataByType(key string, value interface{}, typeMap map[string]structs.Type) (interface{}, error) {
 	if len(typeMap) == 0 {
 		return value, nil
 	}
@@ -96,9 +96,9 @@ func GetDataByType(key string, value interface{}, typeMap map[string]consts.Data
 }
 
 // 获取数据的真实类型
-func getValueByType(typ consts.DataType, value interface{}) (interface{}, error) {
+func getValueByType(typ structs.Type, value interface{}) (interface{}, error) {
 	switch typ {
-	case consts.DataTypeBytes:
+	case structs.TypeBytes:
 		switch realValue := value.(type) {
 		case string:
 			bt := types.StringToBytes(realValue)
@@ -111,7 +111,7 @@ func getValueByType(typ consts.DataType, value interface{}) (interface{}, error)
 		default:
 			return value, nil
 		}
-	case consts.DataTypeTime:
+	case structs.TypeTime:
 		switch realValue := value.(type) {
 		case string:
 			t := time.Time{}
@@ -124,25 +124,25 @@ func getValueByType(typ consts.DataType, value interface{}) (interface{}, error)
 		default:
 			return value, nil
 		}
-	case consts.DataTypeInt:
+	case structs.TypeInt:
 		return types.InterfaceToInt(value)
-	case consts.DataTypeInt8:
+	case structs.TypeInt8:
 		return types.InterfaceToInt8(value)
-	case consts.DataTypeInt16:
+	case structs.TypeInt16:
 		return types.InterfaceToInt16(value)
-	case consts.DataTypeInt32:
+	case structs.TypeInt32:
 		return types.InterfaceToInt32(value)
-	case consts.DataTypeInt64:
+	case structs.TypeInt64:
 		return types.InterfaceToInt64(value)
-	case consts.DataTypeUint:
+	case structs.TypeUint:
 		return types.InterfaceToUint(value)
-	case consts.DataTypeUint8:
+	case structs.TypeUint8:
 		return types.InterfaceToUint8(value)
-	case consts.DataTypeUint16:
+	case structs.TypeUint16:
 		return types.InterfaceToUint16(value)
-	case consts.DataTypeUint32:
+	case structs.TypeUint32:
 		return types.InterfaceToUint32(value)
-	case consts.DataTypeUint64:
+	case structs.TypeUint64:
 		return types.InterfaceToUint64(value)
 	}
 

@@ -21,7 +21,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/horm-database/common/structspec"
+	"github.com/horm-database/common/structs"
 
 	"github.com/spf13/cast"
 )
@@ -307,7 +307,7 @@ func InterfaceToMap(value interface{}) (map[string]interface{}, error) {
 
 	switch rv.Kind() {
 	case reflect.Struct:
-		ss := structspec.GetStructSpec("", rv.Type())
+		ss := structs.GetStructSpec("", rv.Type())
 		for _, f := range ss.Fs {
 			val := rv.Field(f.I)
 			field := f.Column

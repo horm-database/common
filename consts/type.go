@@ -15,27 +15,10 @@
 package consts
 
 import (
-	"time"
-)
+	"reflect"
 
-type DataType int8
-
-const ( /*  默认为 other，不需要特殊处理，例如 string、float，下面类型需要特殊处理转换，
-	比如 int64 整数，json 编码上传到服务端之后，解码会转化为 float64，可能存在精度丢失问题，
-	clickhouse 对类型也有非常强的限制。*/
-	DataTypeOther  DataType = 0  // 其他类型
-	DataTypeBytes  DataType = 1  // 类型是 []byte
-	DataTypeTime   DataType = 2  // 类型是 time.Time
-	DataTypeInt    DataType = 3  // 类型是 int
-	DataTypeInt8   DataType = 4  // 类型是 int8
-	DataTypeInt16  DataType = 5  // 类型是 int16
-	DataTypeInt32  DataType = 6  // 类型是 int32
-	DataTypeInt64  DataType = 7  // 类型是 int64
-	DataTypeUint   DataType = 8  // 类型是 uint
-	DataTypeUint8  DataType = 9  // 类型是 uint8
-	DataTypeUint16 DataType = 10 // 类型是 uint16
-	DataTypeUint32 DataType = 11 // 类型是 uint32
-	DataTypeUint64 DataType = 12 // 类型是 uint64
+	"github.com/horm-database/common/structs"
+	"github.com/horm-database/common/types"
 )
 
 type RetType int8
@@ -80,33 +63,34 @@ func GetRedisRetType(op string, withScore bool) RetType {
 	return RedisRetTypeNil
 }
 
-func GetDataType(v interface{}) DataType {
+func GetDataType(v interface{}) structs.Type {
 	switch v.(type) {
 	case []byte, *[]byte:
-		return DataTypeBytes
+		return structs.TypeBytes
 	case int, []int, *int, *[]int:
-		return DataTypeInt
+		return structs.TypeInt
 	case int8, []int8, *int8, *[]int8:
-		return DataTypeInt8
+		return structs.TypeInt8
 	case int16, []int16, *int16, *[]int16:
-		return DataTypeInt16
+		return structs.TypeInt16
 	case int32, []int32, *int32, *[]int32:
-		return DataTypeInt32
+		return structs.TypeInt32
 	case int64, []int64, *int64, *[]int64:
-		return DataTypeInt64
+		return structs.TypeInt64
 	case uint, []uint, *uint, *[]uint:
-		return DataTypeUint
+		return structs.TypeUint
 	case uint8, *uint8:
-		return DataTypeUint8
+		return structs.TypeUint8
 	case uint16, []uint16, *uint16, *[]uint16:
-		return DataTypeUint16
+		return structs.TypeUint16
 	case uint32, []uint32, *uint32, *[]uint32:
-		return DataTypeUint32
+		return structs.TypeUint32
 	case uint64, []uint64, *uint64, *[]uint64:
-		return DataTypeUint64
-	case time.Time, []time.Time, *time.Time, *[]time.Time:
-		return DataTypeTime
+		return structs.TypeUint64
 	default:
-		return DataTypeOther
+		if types.IsTime(reflect.TypeOf(v)) {
+			return structs.TypeTime
+		}
+		return 0
 	}
 }

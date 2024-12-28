@@ -15,8 +15,8 @@
 package proto
 
 import (
-	"github.com/horm-database/common/consts"
 	"github.com/horm-database/common/proto/sql"
+	"github.com/horm-database/common/structs"
 )
 
 // Unit 查询单元（执行单元）
@@ -35,9 +35,9 @@ type Unit struct {
 	From   uint64                 `json:"from,omitempty"`   // offset
 
 	// 数据更新
-	Data     map[string]interface{}     `json:"data,omitempty"`      // add/update one data
-	Datas    []map[string]interface{}   `json:"datas,omitempty"`     // batch add/update data
-	DataType map[string]consts.DataType `json:"data_type,omitempty"` // 数据类型（主要用于 clickhouse，对于数据类型有强依赖），请求 json 不区分 int8、int16、int32、int64 等，只有 Number 类型，bytes 也会被当成 string 处理。
+	Data     map[string]interface{}   `json:"data,omitempty"`      // add/update one data
+	Datas    []map[string]interface{} `json:"datas,omitempty"`     // batch add/update data
+	DataType map[string]structs.Type  `json:"data_type,omitempty"` // 数据类型（主要用于 clickhouse，对于数据类型有强依赖），请求 json 不区分 int8、int16、int32、int64 等，只有 Number 类型，bytes 也会被当成 string 处理。
 
 	// group by
 	Group  []string               `json:"group,omitempty"`  // group by
