@@ -24,13 +24,13 @@ import (
 )
 
 // FormatData 根据类型格式化数据
-func FormatData(attributes map[string]interface{}, typeMap map[string]structs.Type) (map[string]interface{}, error) {
-	if len(attributes) == 0 || len(typeMap) == 0 {
+func FormatData(attributes map[string]interface{}, types map[string]structs.Type) (map[string]interface{}, error) {
+	if len(attributes) == 0 || len(types) == 0 {
 		return attributes, nil
 	}
 
 	for key, value := range attributes {
-		tmp, err := GetDataByType(key, value, typeMap)
+		tmp, err := GetDataByType(key, value, types)
 		if err != nil {
 			return nil, err
 		}
@@ -41,14 +41,14 @@ func FormatData(attributes map[string]interface{}, typeMap map[string]structs.Ty
 }
 
 // FormatDatas 根据类型格式化数据
-func FormatDatas(datas []map[string]interface{}, typeMap map[string]structs.Type) ([]map[string]interface{}, error) {
-	if len(datas) == 0 || len(typeMap) == 0 {
+func FormatDatas(datas []map[string]interface{}, types map[string]structs.Type) ([]map[string]interface{}, error) {
+	if len(datas) == 0 || len(types) == 0 {
 		return datas, nil
 	}
 
 	for i, data := range datas {
 		for key, value := range data {
-			tmp, err := GetDataByType(key, value, typeMap)
+			tmp, err := GetDataByType(key, value, types)
 			if err != nil {
 				return nil, err
 			}
@@ -60,19 +60,19 @@ func FormatDatas(datas []map[string]interface{}, typeMap map[string]structs.Type
 }
 
 // GetDataByType 获取数据的真实类型
-func GetDataByType(key string, value interface{}, typeMap map[string]structs.Type) (interface{}, error) {
-	if len(typeMap) == 0 {
+func GetDataByType(key string, value interface{}, types map[string]structs.Type) (interface{}, error) {
+	if len(types) == 0 {
 		return value, nil
 	}
 
-	typ, ok := typeMap[key]
+	typ, ok := types[key]
 	if ok {
 		var err error
 
 		// 如果是数组，则递归获取每个数据的真实类型
 		if arrVal, isArr := value.([]interface{}); isArr {
 			for k, v := range arrVal {
-				arrVal[k], err = GetDataByType(key, v, typeMap)
+				arrVal[k], err = GetDataByType(key, v, types)
 				if err != nil {
 					return nil, err
 				}
@@ -112,15 +112,9 @@ func getValueByType(typ structs.Type, value interface{}) (interface{}, error) {
 			return value, nil
 		}
 	case structs.TypeTime:
-		switch realValue := value.(type) {
-		case string:
-			t := time.Time{}
-			if realValue == "" {
-				return t, nil
-			}
-
-			err := t.UnmarshalJSON(types.StringToBytes(`"` + realValue + `"`))
-			return t, err
+		switch value.(type) {
+		case string, json.Number, int, int32, int64, uint, uint32, uint64:
+			return types.ParseTime(value, "", time.Local)
 		default:
 			return value, nil
 		}

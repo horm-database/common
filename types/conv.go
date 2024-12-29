@@ -231,24 +231,12 @@ func InterfaceToTime(value interface{}, layout string, loc ...*time.Location) (t
 		return time.Time{}, nil
 	}
 
-	switch v := value.(type) {
-	case []byte:
-		return InterfaceToTime(BytesToString(v), layout, loc...)
-	case *[]byte:
-		return InterfaceToTime(BytesToString(*v), layout, loc...)
-	default:
-		l := time.Local
-		if len(loc) > 0 {
-			l = loc[0]
-		}
-
-		if layout != "" {
-			return time.ParseInLocation(layout, InterfaceToString(value), l)
-		}
-
-		return cast.ToTimeInDefaultLocationE(value, l)
+	l := time.Local
+	if len(loc) > 0 {
+		l = loc[0]
 	}
 
+	return ParseTime(value, layout, l)
 }
 
 // InterfaceToArray 接口转数组

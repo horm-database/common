@@ -15,12 +15,7 @@
 package types
 
 import (
-	"fmt"
 	"reflect"
-	"strings"
-	"time"
-
-	"github.com/araddon/dateparse"
 )
 
 // IsArray 判断是否 Array 或 Slice
@@ -79,62 +74,21 @@ func IsEmpty(v reflect.Value) bool {
 	return v.IsZero()
 }
 
-type Time time.Time
-
-// UnmarshalJSON NullTime 类型实现 json marshal 方法
-func (nt *Time) UnmarshalJSON(data []byte) error {
-	tStr := strings.TrimPrefix(string(data), `"`)
-	tStr = strings.TrimSuffix(tStr, `"`)
-
-	if tStr == "null" {
+// From html/template/content.go
+// Copyright 2011 The Go Authors. All rights reserved.
+// indirect returns the value, after dereferencing as many times
+// as necessary to reach the base type (or nil).
+func indirect(a interface{}) interface{} {
+	if a == nil {
 		return nil
 	}
-
-	t, err := dateparse.ParseLocal(tStr)
-	if err != nil {
-		return err
+	if t := reflect.TypeOf(a); t.Kind() != reflect.Ptr {
+		// Avoid creating a reflect.Value if it's not a pointer.
+		return a
 	}
-	*nt = Time(t)
-	return nil
-}
-
-var typeTimes = []reflect.Type{
-	reflect.TypeOf(time.Time{}),
-	reflect.TypeOf(Time{}),
-}
-
-// RegisterTime 注册新的时间类型，例如上面的 Time，底层必须是 time.Time 类型
-func RegisterTime(t reflect.Type) error {
-	if t.Kind() != reflect.Struct || !t.ConvertibleTo(typeTimes[0]) {
-		return fmt.Errorf("the underlying type of registration must be time")
+	v := reflect.ValueOf(a)
+	for v.Kind() == reflect.Ptr && !v.IsNil() {
+		v = v.Elem()
 	}
-
-	typeTimes = append(typeTimes, t)
-	return nil
-}
-
-// GetRealTime 如果是时间类型，则强制转化为 time.Time 返回。
-func GetRealTime(vv reflect.Value) (time.Time, bool) {
-	v := reflect.Indirect(vv)
-	if IsTime(v.Type()) {
-		switch iv := v.Interface().(type) {
-		case time.Time:
-			return iv, true
-		case Time:
-			return time.Time(iv), true
-		default: // 强制转化为 time.Time 类型
-			return v.Convert(typeTimes[0]).Interface().(time.Time), true
-		}
-	}
-	return time.Time{}, false
-}
-
-// IsTime 传入类型是否时间
-func IsTime(v reflect.Type) bool {
-	for _, typeTime := range typeTimes {
-		if v == typeTime {
-			return true
-		}
-	}
-	return false
+	return v.Interface()
 }
