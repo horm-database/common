@@ -65,7 +65,7 @@ func IsEmpty(v reflect.Value) bool {
 			return IsEmpty(v.Elem())
 		}
 	default:
-		t, isTime := GetRealTime(v)
+		t, isTime := GetRealTime(v.Interface())
 		if isTime {
 			return t.IsZero()
 		}

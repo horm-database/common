@@ -60,18 +60,24 @@ func RegisterTime(t reflect.Type) error {
 }
 
 // GetRealTime 如果是时间类型，则强制转化为 time.Time 返回。
-func GetRealTime(vv reflect.Value) (time.Time, bool) {
-	v := reflect.Indirect(vv)
-	if IsTime(v.Type()) {
-		switch iv := v.Interface().(type) {
-		case time.Time:
-			return iv, true
-		case Time:
-			return time.Time(iv), true
-		default: // 强制转化为 time.Time 类型
-			return v.Convert(typeTimes[0]).Interface().(time.Time), true
-		}
+func GetRealTime(data interface{}) (time.Time, bool) {
+	switch t := data.(type) {
+	case time.Time:
+		return t, true
+	case Time:
+		return time.Time(t), true
+	case *time.Time:
+		return *t, true
+	case *Time:
+		return time.Time(*t), true
 	}
+
+	v := reflect.Indirect(reflect.ValueOf(data))
+	if IsTime(v.Type()) {
+		// 强制转化为 time.Time 类型
+		return v.Convert(typeTimes[0]).Interface().(time.Time), true
+	}
+
 	return time.Time{}, false
 }
 
@@ -179,7 +185,7 @@ func ParseTime(src interface{}, layout string, loc *time.Location) (time.Time, e
 	case uint32:
 		return time.Unix(int64(v), 0), nil
 	default:
-		t, ok := GetRealTime(reflect.ValueOf(src))
+		t, ok := GetRealTime(src)
 		if ok {
 			return t, nil
 		}
