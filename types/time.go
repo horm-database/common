@@ -36,7 +36,7 @@ func (nt *Time) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	t, err := ParseTime(tStr, "", time.Local)
+	t, err := ParseTime(tStr, time.Local)
 	if err != nil {
 		return err
 	}
@@ -95,29 +95,29 @@ var dateTimeLen = len(time.DateTime)
 var dateOnlyLen = len(time.DateOnly)
 
 // ParseTime 解析任何时间
-func ParseTime(src interface{}, layout string, loc *time.Location) (time.Time, error) {
+func ParseTime(src interface{}, loc *time.Location, layout ...string) (time.Time, error) {
 	if loc == nil {
 		loc = time.Local
 	}
 
 	switch v := src.(type) {
 	case []byte:
-		return ParseTime(BytesToString(v), layout, loc)
+		return ParseTime(BytesToString(v), loc, layout...)
 	case *[]byte:
-		return ParseTime(BytesToString(*v), layout, loc)
+		return ParseTime(BytesToString(*v), loc, layout...)
 	case string:
 		l := len(v)
 		if l == 0 {
 			return time.Time{}, nil
 		}
 
-		if layout != "" {
-			return time.ParseInLocation(layout, v, loc)
+		if len(layout) > 0 && layout[0] != "" {
+			return time.ParseInLocation(layout[0], v, loc)
 		}
 
 		i, err := strconv.ParseUint(v, 10, 64)
 		if err == nil && i > 631123200 { //时间戳，且大于 1990-01-01 00:00:00
-			return ParseTime(i, layout, loc)
+			return ParseTime(i, loc)
 		}
 
 		switch l {

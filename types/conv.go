@@ -236,7 +236,7 @@ func InterfaceToTime(value interface{}, layout string, loc ...*time.Location) (t
 		l = loc[0]
 	}
 
-	return ParseTime(value, layout, l)
+	return ParseTime(value, l, layout)
 }
 
 // InterfaceToArray 接口转数组

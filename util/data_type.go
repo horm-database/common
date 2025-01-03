@@ -114,7 +114,7 @@ func getValueByType(typ structs.Type, value interface{}) (interface{}, error) {
 	case structs.TypeTime:
 		switch value.(type) {
 		case string, json.Number, int, int32, int64, uint, uint32, uint64:
-			return types.ParseTime(value, "", time.Local)
+			return types.ParseTime(value, time.Local)
 		default:
 			return value, nil
 		}
