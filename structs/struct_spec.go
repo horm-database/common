@@ -69,6 +69,7 @@ type FieldSpec struct {
 	OnUpdateTime     bool   // 数据变更时修改为当前时间，具体格式根据 Type 决定，这里我推荐数据库自带的时间戳更新功能。
 	TimeFmt          string // 当字段底层类型为 time.Time 时，格式化时间，仅针对请求格式化，返回数据的解析在 codec 内。
 	OnUniqueID       bool   // 新增数据时候，如果字段为空值，而且类型为 uint64，则自动生成唯一 ID，记得务必在 orm.yaml 配置里面为每台机器设置不同的 machine_id，否则生成的ID可能会有冲突
+	EsID             bool   // 是否 es 主键 _id
 }
 
 func (ss *StructSpec) FieldSpec(name string) *FieldSpec {
@@ -180,7 +181,7 @@ func passFieldSpec(s string, fs *FieldSpec) bool {
 	s = strings.TrimSpace(s)
 
 	if strings.HasPrefix(s, "time_fmt") {
-		fs.TimeFmt = strings.TrimSuffix(strings.TrimPrefix(s, "time_fmt='"), "'")
+		fs.TimeFmt = strings.Trim(strings.TrimPrefix(s, "time_fmt="), "'")
 	}
 
 	switch s {
@@ -204,6 +205,9 @@ func passFieldSpec(s string, fs *FieldSpec) bool {
 		return true
 	case "onuniqueid":
 		fs.OnUniqueID = true
+		return true
+	case "es_id":
+		fs.EsID = true
 		return true
 	default:
 		return false
