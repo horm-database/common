@@ -16,6 +16,7 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -29,8 +30,7 @@ type Time time.Time
 
 // UnmarshalJSON NullTime 类型实现 json marshal 方法
 func (nt *Time) UnmarshalJSON(data []byte) error {
-	tStr := strings.TrimPrefix(string(data), `"`)
-	tStr = strings.TrimSuffix(tStr, `"`)
+	tStr := strings.TrimSuffix(strings.TrimPrefix(string(data), `"`), `"`)
 
 	if tStr == "null" {
 		return nil
@@ -91,11 +91,22 @@ func IsTime(v reflect.Type) bool {
 	return false
 }
 
-var dateTimeLen = len(time.DateTime)
-var dateOnlyLen = len(time.DateOnly)
+const dateTimeLen = len(time.DateTime)
+const dateOnlyLen = len(time.DateOnly)
+const ansicLen = len(time.ANSIC)
+const unixDateLen = len(time.UnixDate)
+const rfc850Len = len(time.RFC850)
+const rfc1123Len = len(time.RFC1123)
+const rfc1123zLen = len(time.RFC1123Z)
+
+var commonlyHitErr = errors.New("commonly hit init error")
 
 // ParseTime 解析任何时间
 func ParseTime(src interface{}, loc *time.Location, layout ...string) (time.Time, error) {
+	if src == nil {
+		return time.Time{}, nil
+	}
+
 	if loc == nil {
 		loc = time.Local
 	}
@@ -105,40 +116,6 @@ func ParseTime(src interface{}, loc *time.Location, layout ...string) (time.Time
 		return ParseTime(BytesToString(v), loc, layout...)
 	case *[]byte:
 		return ParseTime(BytesToString(*v), loc, layout...)
-	case string:
-		l := len(v)
-		if l == 0 {
-			return time.Time{}, nil
-		}
-
-		if len(layout) > 0 && layout[0] != "" {
-			return time.ParseInLocation(layout[0], v, loc)
-		}
-
-		i, err := strconv.ParseUint(v, 10, 64)
-		if err == nil && i > 631123200 { //时间戳，且大于 1990-01-01 00:00:00
-			return ParseTime(i, loc)
-		}
-
-		switch l {
-		case dateTimeLen:
-			t, e := time.ParseInLocation(time.DateTime, v, loc) // 首先校验是否最常用的 DateTime 格式。
-			if e == nil {
-				return t, nil
-			}
-		case dateOnlyLen:
-			t, e := time.ParseInLocation(time.DateOnly, v, loc) // 首先校验是否最常用的 DateOnly 格式，日期一般这个格式。
-			if e == nil {
-				return t, nil
-			}
-		default:
-			t, e := time.ParseInLocation(time.RFC3339Nano, v, loc) // 首先校验是否最常用的 RFC3339Nano 格式，json.Marshal 一般是这个格式。
-			if e == nil {
-				return t, nil
-			}
-		}
-
-		return dateparse.ParseIn(v, loc)
 	case json.Number:
 		s, e := v.Int64()
 		if e != nil {
@@ -184,6 +161,56 @@ func ParseTime(src interface{}, loc *time.Location, layout ...string) (time.Time
 		}
 	case uint32:
 		return time.Unix(int64(v), 0), nil
+	case string:
+		l := len(v)
+		if l == 0 {
+			return time.Time{}, nil
+		}
+
+		if len(layout) > 0 && layout[0] != "" {
+			return time.ParseInLocation(layout[0], v, loc)
+		}
+
+		i, err := strconv.ParseUint(v, 10, 64)
+		if err == nil && i > 631123200 { //时间戳，且大于 1990-01-01 00:00:00
+			return ParseTime(i, loc)
+		}
+
+		var ct time.Time
+		var ce = commonlyHitErr
+
+		switch l {
+		case dateTimeLen:
+			ct, ce = time.ParseInLocation(time.DateTime, v, loc)
+		case dateOnlyLen:
+			ct, ce = time.ParseInLocation(time.DateOnly, v, loc)
+		default:
+			if l > 19 {
+				switch v[:3] {
+				case "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun":
+					switch l {
+					case ansicLen - 1, ansicLen:
+						ct, ce = time.ParseInLocation(time.ANSIC, v, loc)
+					case unixDateLen - 1, unixDateLen:
+						ct, ce = time.ParseInLocation(time.UnixDate, v, loc)
+					case rfc850Len:
+						ct, ce = time.ParseInLocation(time.RFC850, v, loc)
+					case rfc1123Len:
+						ct, ce = time.ParseInLocation(time.RFC1123, v, loc)
+					case rfc1123zLen:
+						ct, ce = time.ParseInLocation(time.RFC1123Z, v, loc)
+					}
+				default:
+					ct, ce = time.ParseInLocation(time.RFC3339Nano, v, loc) // 首先校验是否最常用的 RFC3339Nano 格式，json.Marshal 一般是这个格式。
+				}
+			}
+		}
+
+		if ce == nil {
+			return ct, nil
+		}
+
+		return dateparse.ParseIn(v, loc)
 	default:
 		t, ok := GetRealTime(src)
 		if ok {

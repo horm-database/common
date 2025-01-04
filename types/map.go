@@ -40,7 +40,7 @@ func (m Map) GetString(key string) (ret string, exist bool) {
 		return "", false
 	}
 
-	return InterfaceToString(value), true
+	return ToString(value), true
 }
 
 func (m Map) GetBytes(key string) (ret []byte, exist bool) {
@@ -53,7 +53,7 @@ func (m Map) GetBytes(key string) (ret []byte, exist bool) {
 		return nil, false
 	}
 
-	return InterfaceToBytes(value), true
+	return ToBytes(value), true
 }
 
 func (m Map) GetBool(key string) (ret bool, exist bool) {
@@ -70,7 +70,7 @@ func (m Map) GetBool(key string) (ret bool, exist bool) {
 		return false, false
 	}
 
-	return InterfaceToBool(value), true
+	return ToBool(value), true
 }
 
 func (m Map) GetInt64(key string) (ret int64, exist bool, err error) {
@@ -87,7 +87,7 @@ func (m Map) GetInt64(key string) (ret int64, exist bool, err error) {
 		return 0, false, nil
 	}
 
-	tmp, err := InterfaceToInt64(value)
+	tmp, err := ToInt64(value)
 	return tmp, true, err
 }
 
@@ -105,7 +105,7 @@ func (m Map) GetUint64(key string) (ret uint64, exist bool, err error) {
 		return 0, false, nil
 	}
 
-	tmp, err := InterfaceToUint64(value)
+	tmp, err := ToUint64(value)
 	return tmp, true, err
 }
 
@@ -123,7 +123,7 @@ func (m Map) GetFloat64(key string) (ret float64, exist bool, err error) {
 		return 0, false, nil
 	}
 
-	ret, err = InterfaceToFloat64(value)
+	ret, err = ToFloat64(value)
 	return ret, true, err
 }
 
@@ -167,7 +167,7 @@ func (m Map) GetUint32(key string) (uint32, bool, error) {
 	return uint32(ui64), exist, err
 }
 
-func (m Map) GetTime(key, layout string, loc ...*time.Location) (ret time.Time, exist bool, err error) {
+func (m Map) GetTime(key string, loc *time.Location, layout ...string) (ret time.Time, exist bool, err error) {
 	if len(m) == 0 {
 		return time.Time{}, false, nil
 	}
@@ -181,7 +181,7 @@ func (m Map) GetTime(key, layout string, loc ...*time.Location) (ret time.Time, 
 		return time.Time{}, false, nil
 	}
 
-	ret, err = InterfaceToTime(value, layout, loc...)
+	ret, err = ToTime(value, loc, layout...)
 	return ret, true, err
 }
 
@@ -199,7 +199,7 @@ func (m Map) GetMap(key string) (ret Map, exist bool, err error) {
 		return nil, true, nil
 	}
 
-	ret, err = InterfaceToMap(value)
+	ret, err = ToMap(value)
 	return ret, true, err
 }
 
@@ -217,7 +217,7 @@ func (m Map) GetStringArray(key string) (ret []string, exist bool, err error) {
 		return nil, false, nil
 	}
 
-	ret, err = InterfaceToStringArray(value)
+	ret, err = ToStringArray(value)
 	return ret, true, err
 }
 
@@ -235,7 +235,7 @@ func (m Map) GetInt64Array(key string) (ret []int64, exist bool, err error) {
 		return nil, false, nil
 	}
 
-	ret, err = InterfaceToInt64Array(value)
+	ret, err = ToInt64Array(value)
 	return ret, true, err
 }
 
@@ -253,7 +253,7 @@ func (m Map) GetUint64Array(key string) (ret []uint64, exist bool, err error) {
 		return nil, false, nil
 	}
 
-	ret, err = InterfaceToUint64Array(value)
+	ret, err = ToUint64Array(value)
 	return ret, true, err
 }
 
@@ -271,7 +271,7 @@ func (m Map) GetFloat64Array(key string) (ret []float64, exist bool, err error) 
 		return nil, false, nil
 	}
 
-	ret, err = InterfaceToFloat64Array(value)
+	ret, err = ToFloat64Array(value)
 	return ret, true, err
 }
 
@@ -291,7 +291,7 @@ func (m Map) GetMapArray(key string) (ret []Map, exist bool, err error) {
 	case []interface{}:
 		ret = make([]Map, len(arrVal))
 		for k, arrItem := range arrVal {
-			im, e := InterfaceToMap(arrItem)
+			im, e := ToMap(arrItem)
 			if e != nil {
 				return nil, true, e
 			}
@@ -320,7 +320,7 @@ func (m Map) GetMapArray(key string) (ret []Map, exist bool, err error) {
 		ret = make([]Map, l)
 
 		for i := 0; i < l; i++ {
-			im, e := InterfaceToMap(Interface(v.Index(i)))
+			im, e := ToMap(Interface(v.Index(i)))
 			if e != nil {
 				return nil, true, e
 			}
@@ -387,9 +387,9 @@ func GetUint32(v map[string]interface{}, key string) (ret uint32, exist bool, er
 	return Map(v).GetUint32(key)
 }
 
-func GetTime(v map[string]interface{}, key, layout string,
-	loc ...*time.Location) (ret time.Time, exist bool, err error) {
-	return Map(v).GetTime(key, layout, loc...)
+func GetTime(v map[string]interface{}, key string,
+	loc *time.Location, layout ...string) (ret time.Time, exist bool, err error) {
+	return Map(v).GetTime(key, loc, layout...)
 }
 
 func GetMap(v map[string]interface{}, key string) (Map, bool, error) {

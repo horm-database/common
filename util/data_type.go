@@ -119,25 +119,25 @@ func getValueByType(typ structs.Type, value interface{}) (interface{}, error) {
 			return value, nil
 		}
 	case structs.TypeInt:
-		return types.InterfaceToInt(value)
+		return types.ToInt(value)
 	case structs.TypeInt8:
-		return types.InterfaceToInt8(value)
+		return types.ToInt8(value)
 	case structs.TypeInt16:
-		return types.InterfaceToInt16(value)
+		return types.ToInt16(value)
 	case structs.TypeInt32:
-		return types.InterfaceToInt32(value)
+		return types.ToInt32(value)
 	case structs.TypeInt64:
-		return types.InterfaceToInt64(value)
+		return types.ToInt64(value)
 	case structs.TypeUint:
-		return types.InterfaceToUint(value)
+		return types.ToUint(value)
 	case structs.TypeUint8:
-		return types.InterfaceToUint8(value)
+		return types.ToUint8(value)
 	case structs.TypeUint16:
-		return types.InterfaceToUint16(value)
+		return types.ToUint16(value)
 	case structs.TypeUint32:
-		return types.InterfaceToUint32(value)
+		return types.ToUint32(value)
 	case structs.TypeUint64:
-		return types.InterfaceToUint64(value)
+		return types.ToUint64(value)
 	}
 
 	switch realValue := value.(type) {
