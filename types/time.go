@@ -24,11 +24,12 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
+	"github.com/json-iterator/go"
 )
 
 type Time time.Time
 
-// UnmarshalJSON NullTime 类型实现 json marshal 方法
+// UnmarshalJSON Time 类型实现 json unmarshal 方法
 func (nt *Time) UnmarshalJSON(data []byte) error {
 	tStr := strings.TrimSuffix(strings.TrimPrefix(string(data), `"`), `"`)
 
@@ -42,6 +43,12 @@ func (nt *Time) UnmarshalJSON(data []byte) error {
 	}
 	*nt = Time(t)
 	return nil
+}
+
+// MarshalJSON Time 类型实现 json marshal 方法
+func (nt Time) MarshalJSON() ([]byte, error) {
+	str := time.Time(nt).Format(time.RFC3339Nano)
+	return jsoniter.Marshal(str)
 }
 
 var typeTimes = []reflect.Type{
