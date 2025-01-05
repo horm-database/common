@@ -104,9 +104,9 @@ func GetRelation(dbType int, key string, v reflect.Value) (bool, bool, string) {
 	return false, false, ""
 }
 
-// OperatorMatch 匹配操作符
+// OperatorMatch 匹配操作符及操作属性
 func OperatorMatch(key string, isElastic bool) (column, operator,
-	subOperator, matchType, minShouldMatch string, boost float64, slop int) {
+	opAttr, minShouldMatch string, boost float64, slop int) {
 	key = RemoveComments(key)
 
 	if key == "" {
@@ -125,21 +125,17 @@ func OperatorMatch(key string, isElastic bool) (column, operator,
 			attrs := strings.Split(attrStr, ",")
 			for _, attr := range attrs {
 				kv := strings.Split(attr, "=")
-				if len(kv) != 2 {
-					continue
-				}
-
-				switch kv[0] {
-				case "operator":
-					subOperator = strings.TrimSpace(kv[1])
-				case "boost":
-					boost, _ = strconv.ParseFloat(strings.TrimSpace(kv[1]), 64)
-				case "slop":
-					slop, _ = strconv.Atoi(strings.TrimSpace(kv[1]))
-				case "type":
-					matchType = strings.TrimSpace(kv[1])
-				case "minimum_should_match":
-					minShouldMatch = strings.TrimSpace(kv[1])
+				if len(kv) == 1 {
+					opAttr = strings.TrimSpace(attr)
+				} else if len(kv) == 2 {
+					switch kv[0] {
+					case "boost":
+						boost, _ = strconv.ParseFloat(strings.TrimSpace(kv[1]), 64)
+					case "slop":
+						slop, _ = strconv.Atoi(strings.TrimSpace(kv[1]))
+					case "minimum_should_match":
+						minShouldMatch = strings.TrimSpace(kv[1])
+					}
 				}
 			}
 
