@@ -18,6 +18,8 @@ import (
 	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/martinlindhe/base36"
 )
 
 var (
@@ -112,4 +114,16 @@ func ParseID(id uint64) (t time.Time, machineID int, sn uint64) {
 	//00000000 00000000 00000000 00000000 00000000 00000000 00001111 11111111
 	sn = id & 0xFFF
 	return
+}
+
+// Generate36ID 生成 36 进制的 ID，包含 0-9, A-Z 所有字符，传输位数少（但是存储位数不如 uint64 只有 8 个字节）
+func Generate36ID() string {
+	id := GenerateID()
+	return base36.Encode(id)
+}
+
+// Parse36ID 解析 36 进制的 ID
+func Parse36ID(idStr string) (t time.Time, machineID int, sn uint64) {
+	id := base36.Decode(idStr)
+	return ParseID(id)
 }

@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/json-iterator/go"
 )
 
 type Time time.Time
@@ -47,8 +46,7 @@ func (nt *Time) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON Time 类型实现 json marshal 方法
 func (nt Time) MarshalJSON() ([]byte, error) {
-	str := time.Time(nt).Format(time.RFC3339Nano)
-	return jsoniter.Marshal(str)
+	return []byte(`"` + time.Time(nt).Format(time.RFC3339Nano) + `"`), nil
 }
 
 var typeTimes = []reflect.Type{
