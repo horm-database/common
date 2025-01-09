@@ -72,14 +72,6 @@ type FieldSpec struct {
 	EsID             bool   // 是否 es 主键 _id
 }
 
-func (ss *StructSpec) FieldSpec(name string) *FieldSpec {
-	return ss.M[name]
-}
-
-func (ss *StructSpec) ColumnSpec(name string) *FieldSpec {
-	return ss.Cm[name]
-}
-
 func compileStructSpec(tagName string, t reflect.Type, depth map[string]int, index []int, ss *StructSpec) {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
@@ -137,7 +129,7 @@ func compileStructSpec(tagName string, t reflect.Type, depth map[string]int, ind
 				if len(p) > 1 {
 					isOmitOn := passFieldSpec(p[1], fs)
 					if !isOmitOn {
-						fs.Type = TypeDesc[strings.ToLower(p[1])]
+						fs.Type = OrmType[strings.ToLower(p[1])]
 					}
 				}
 

@@ -287,7 +287,7 @@ func ToMap(value interface{}) (map[string]interface{}, error) {
 	case reflect.Struct:
 		ss := structs.GetStructSpec("", rv.Type())
 		for _, f := range ss.Fs {
-			val := rv.Field(f.I)
+			val := rv.FieldByIndex(f.Index)
 			field := f.Column
 			if field == "" {
 				field = f.Name

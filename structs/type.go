@@ -39,7 +39,7 @@ const ( /* 我们发送请求到数据统一调度服务的时候，绝大多数
 	TypeJSON   Type = 17
 )
 
-var TypeDesc = map[string]Type{
+var OrmType = map[string]Type{
 	"time":   TypeTime,
 	"bytes":  TypeBytes,
 	"float":  TypeFloat,
