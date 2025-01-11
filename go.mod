@@ -3,9 +3,11 @@ module github.com/horm-database/common
 go 1.18
 
 require (
+	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/golang/protobuf v1.5.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/json-iterator/go v1.1.12
+	github.com/martinlindhe/base36 v1.1.1
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/spf13/cast v1.7.0
 	go.uber.org/zap v1.25.0
