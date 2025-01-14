@@ -15,8 +15,6 @@
 package types
 
 import (
-	"errors"
-	"reflect"
 	"time"
 )
 
@@ -285,50 +283,8 @@ func (m Map) GetMapArray(key string) (ret []Map, exist bool, err error) {
 		return nil, true, nil
 	}
 
-	switch arrVal := value.(type) {
-	case []Map:
-		return arrVal, true, nil
-	case []interface{}:
-		ret = make([]Map, len(arrVal))
-		for k, arrItem := range arrVal {
-			im, e := ToMap(arrItem)
-			if e != nil {
-				return nil, true, e
-			}
-			ret[k] = im
-		}
-	case []map[string]interface{}:
-		ret = make([]Map, len(arrVal))
-		for k, arrItem := range arrVal {
-			ret[k] = arrItem
-		}
-	default:
-		v := reflect.ValueOf(value)
-		if IsNil(v) {
-			return nil, true, nil
-		}
-
-		if v.Kind() == reflect.Ptr {
-			v = v.Elem()
-		}
-
-		if !IsArray(v) {
-			return nil, true, errors.New("value is not array")
-		}
-
-		l := v.Len()
-		ret = make([]Map, l)
-
-		for i := 0; i < l; i++ {
-			im, e := ToMap(Interface(v.Index(i)))
-			if e != nil {
-				return nil, true, e
-			}
-			ret[i] = im
-		}
-	}
-
-	return ret, true, nil
+	mapArr, err := ToMapArray(value)
+	return mapArr, true, err
 }
 
 func GetString(v map[string]interface{}, key string) (ret string, exist bool) {

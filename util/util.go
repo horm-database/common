@@ -93,8 +93,8 @@ func GetRelation(dbType int, key string, v reflect.Value) (bool, bool, string) {
 			return true, false, strings.ToUpper(nk)
 		} else if (k == reflect.Array || k == reflect.Slice) && isRelation == consts.AndOrNot {
 			if v.Len() > 0 {
-				vv := v.Index(0)
-				if !vv.IsNil() && reflect.ValueOf(vv.Interface()).Kind() == reflect.Map {
+				v0 := v.Index(0)
+				if !v0.IsNil() && types.IsMap(v0) {
 					return true, true, strings.ToUpper(nk)
 				}
 			}

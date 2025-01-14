@@ -17,7 +17,6 @@ package consts
 import (
 	"reflect"
 
-	"github.com/horm-database/common/structs"
 	"github.com/horm-database/common/types"
 )
 
@@ -63,33 +62,33 @@ func GetRedisRetType(op string, withScore bool) RetType {
 	return RedisRetTypeNil
 }
 
-func GetDataType(v interface{}) structs.Type {
+func GetDataType(v interface{}) types.Type {
 	switch v.(type) {
 	case []byte, *[]byte:
-		return structs.TypeBytes
+		return types.TypeBytes
 	case int, []int, *int, *[]int:
-		return structs.TypeInt
+		return types.TypeInt
 	case int8, []int8, *int8, *[]int8:
-		return structs.TypeInt8
+		return types.TypeInt8
 	case int16, []int16, *int16, *[]int16:
-		return structs.TypeInt16
+		return types.TypeInt16
 	case int32, []int32, *int32, *[]int32:
-		return structs.TypeInt32
+		return types.TypeInt32
 	case int64, []int64, *int64, *[]int64:
-		return structs.TypeInt64
+		return types.TypeInt64
 	case uint, []uint, *uint, *[]uint:
-		return structs.TypeUint
+		return types.TypeUint
 	case uint8, *uint8:
-		return structs.TypeUint8
+		return types.TypeUint8
 	case uint16, []uint16, *uint16, *[]uint16:
-		return structs.TypeUint16
+		return types.TypeUint16
 	case uint32, []uint32, *uint32, *[]uint32:
-		return structs.TypeUint32
+		return types.TypeUint32
 	case uint64, []uint64, *uint64, *[]uint64:
-		return structs.TypeUint64
+		return types.TypeUint64
 	default:
 		if types.IsTime(reflect.TypeOf(v)) {
-			return structs.TypeTime
+			return types.TypeTime
 		}
 		return 0
 	}

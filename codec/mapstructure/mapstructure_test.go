@@ -243,8 +243,8 @@ func TestBasicTypes(t *testing.T) {
 		"Vfloat":      42.42,
 		"vsilent":     true,
 		"vdata":       42,
-		"vjsonInt":    json.Number("12345"),
-		"vjsonUint":   json.Number("12345"),
+		"vjsonInt":    json.Number("1234"),
+		"vjsonUint":   json.Number("1234"),
 		"vjsonUint64": json.Number("9223372036854775809"), // 2^63 + 1
 		"vjsonFloat":  json.Number("1234.5"),
 		"vjsonNumber": json.Number("1234.5"),

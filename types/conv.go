@@ -21,7 +21,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/horm-database/common/structs"
 	"github.com/spf13/cast"
 )
 
@@ -285,7 +284,7 @@ func ToMap(value interface{}) (map[string]interface{}, error) {
 
 	switch rv.Kind() {
 	case reflect.Struct:
-		ss := structs.GetStructSpec("", rv.Type())
+		ss := GetStructSpec("", rv.Type())
 		for _, f := range ss.Fs {
 			val := rv.FieldByIndex(f.Index)
 			field := f.Column
@@ -308,24 +307,28 @@ func ToMap(value interface{}) (map[string]interface{}, error) {
 }
 
 // ToMapArray 接口转map数组
-func ToMapArray(value interface{}) (ret []map[string]interface{}, err error) {
+func ToMapArray(value interface{}) (ret []Map, err error) {
 	if value == nil {
 		return nil, nil
 	}
 
-	switch val := value.(type) {
+	switch arrVal := value.(type) {
+	case []Map:
+		return arrVal, nil
 	case []interface{}:
-		ret = make([]map[string]interface{}, len(val))
-		for k, v := range val {
-			mv, e := ToMap(v)
+		ret = make([]Map, len(arrVal))
+		for k, arrItem := range arrVal {
+			im, e := ToMap(arrItem)
 			if e != nil {
 				return nil, e
 			}
-			ret[k] = mv
+			ret[k] = im
 		}
-		return ret, nil
 	case []map[string]interface{}:
-		return val, nil
+		ret = make([]Map, len(arrVal))
+		for k, arrItem := range arrVal {
+			ret[k] = arrItem
+		}
 	default:
 		v := reflect.ValueOf(value)
 		if IsNil(v) {
@@ -341,18 +344,18 @@ func ToMapArray(value interface{}) (ret []map[string]interface{}, err error) {
 		}
 
 		l := v.Len()
-		ret = make([]map[string]interface{}, l)
+		ret = make([]Map, l)
 
 		for i := 0; i < l; i++ {
-			iv := Interface(v.Index(i))
-			mv, e := ToMap(iv)
+			im, e := ToMap(Interface(v.Index(i)))
 			if e != nil {
 				return nil, e
 			}
-			ret[i] = mv
+			ret[i] = im
 		}
-		return ret, nil
 	}
+
+	return ret, nil
 }
 
 // ToStringArray 接口转字符串数组

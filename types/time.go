@@ -225,3 +225,33 @@ func ParseTime(src interface{}, loc *time.Location, layout ...string) (time.Time
 		return time.Time{}, fmt.Errorf("unable to cast %#v of type %T to Time", src, src)
 	}
 }
+
+// Now 根据 orm type 获取当前时间
+func Now(typ Type) interface{} {
+	switch typ {
+	case TypeInt, TypeInt32, TypeInt64,
+		TypeUint, TypeUint32, TypeUint64:
+		return time.Now().Unix()
+	case TypeString:
+		return time.Now().Format(time.RFC3339Nano)
+	default:
+		return time.Now()
+	}
+}
+
+// GetFormatTime 获取格式化时间
+func GetFormatTime(data interface{}, timeFmt string) interface{} {
+	if timeFmt != "" {
+		t, ok := GetRealTime(data)
+		if ok {
+			return t.Format(timeFmt)
+		}
+	}
+
+	return data
+}
+
+// GetMillisecond 返回毫秒 time.Duration
+func GetMillisecond(sec int) time.Duration {
+	return time.Millisecond * time.Duration(sec)
+}

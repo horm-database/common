@@ -19,12 +19,11 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/horm-database/common/structs"
 	"github.com/horm-database/common/types"
 )
 
 // FormatData 根据类型格式化数据
-func FormatData(attributes map[string]interface{}, types map[string]structs.Type) (map[string]interface{}, error) {
+func FormatData(attributes map[string]interface{}, types map[string]types.Type) (map[string]interface{}, error) {
 	if len(attributes) == 0 || len(types) == 0 {
 		return attributes, nil
 	}
@@ -41,7 +40,7 @@ func FormatData(attributes map[string]interface{}, types map[string]structs.Type
 }
 
 // FormatDatas 根据类型格式化数据
-func FormatDatas(datas []map[string]interface{}, types map[string]structs.Type) ([]map[string]interface{}, error) {
+func FormatDatas(datas []map[string]interface{}, types map[string]types.Type) ([]map[string]interface{}, error) {
 	if len(datas) == 0 || len(types) == 0 {
 		return datas, nil
 	}
@@ -60,7 +59,7 @@ func FormatDatas(datas []map[string]interface{}, types map[string]structs.Type) 
 }
 
 // GetDataByType 获取数据的真实类型
-func GetDataByType(key string, value interface{}, types map[string]structs.Type) (interface{}, error) {
+func GetDataByType(key string, value interface{}, types map[string]types.Type) (interface{}, error) {
 	if len(types) == 0 {
 		return value, nil
 	}
@@ -96,9 +95,9 @@ func GetDataByType(key string, value interface{}, types map[string]structs.Type)
 }
 
 // 获取数据的真实类型
-func getValueByType(typ structs.Type, value interface{}) (interface{}, error) {
+func getValueByType(typ types.Type, value interface{}) (interface{}, error) {
 	switch typ {
-	case structs.TypeBytes:
+	case types.TypeBytes:
 		switch realValue := value.(type) {
 		case string:
 			bt := types.StringToBytes(realValue)
@@ -111,32 +110,32 @@ func getValueByType(typ structs.Type, value interface{}) (interface{}, error) {
 		default:
 			return value, nil
 		}
-	case structs.TypeTime:
+	case types.TypeTime:
 		switch value.(type) {
 		case string, json.Number, int, int32, int64, uint, uint32, uint64:
 			return types.ParseTime(value, time.Local)
 		default:
 			return value, nil
 		}
-	case structs.TypeInt:
+	case types.TypeInt:
 		return types.ToInt(value)
-	case structs.TypeInt8:
+	case types.TypeInt8:
 		return types.ToInt8(value)
-	case structs.TypeInt16:
+	case types.TypeInt16:
 		return types.ToInt16(value)
-	case structs.TypeInt32:
+	case types.TypeInt32:
 		return types.ToInt32(value)
-	case structs.TypeInt64:
+	case types.TypeInt64:
 		return types.ToInt64(value)
-	case structs.TypeUint:
+	case types.TypeUint:
 		return types.ToUint(value)
-	case structs.TypeUint8:
+	case types.TypeUint8:
 		return types.ToUint8(value)
-	case structs.TypeUint16:
+	case types.TypeUint16:
 		return types.ToUint16(value)
-	case structs.TypeUint32:
+	case types.TypeUint32:
 		return types.ToUint32(value)
-	case structs.TypeUint64:
+	case types.TypeUint64:
 		return types.ToUint64(value)
 	}
 

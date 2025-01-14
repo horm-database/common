@@ -12,13 +12,160 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package structs
+package types
 
 import (
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/horm-database/common/snowflake"
 )
+
+const (
+	OpInsert  = 1
+	OpReplace = 2
+	OpUpdate  = 3
+)
+
+// StructToMap 结构体转 map
+func StructToMap(v reflect.Value, tag string, op int8) map[string]interface{} {
+	ss := GetStructSpec(tag, v.Type())
+
+	data := make(map[string]interface{})
+
+	for _, fs := range ss.M {
+		if fs.Tag != tag {
+			continue
+		}
+
+		iv := v.FieldByIndex(fs.Index)
+		isEmpty := IsEmpty(iv)
+
+		if fs.OnUniqueID && op == OpInsert && isEmpty && iv.Kind() == reflect.Uint64 {
+			data[fs.Column] = snowflake.GenerateID()
+			if fs.EsID {
+				data["_id"] = data[fs.Column]
+			}
+			continue
+		}
+
+		if fs.OnUpdateTime && isEmpty {
+			//修改时自动赋值当前时间，仅在值为零值时才自动赋值
+			data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
+			continue
+		} else if (op == OpInsert || op == OpReplace) && fs.OnCreateTime && isEmpty {
+			//自动插入当前时间，仅在值为零值时才自动赋值
+			data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
+			continue
+		}
+
+		if isEmpty && (fs.OmitEmpty ||
+			(op == OpInsert && fs.OmitInsertEmpty) ||
+			(op == OpReplace && fs.OmitReplaceEmpty) ||
+			(op == OpUpdate && fs.OmitUpdateEmpty)) { // 忽略零值
+			continue
+		}
+
+		data[fs.Column] = getValue(fs, iv)
+
+		if op == OpInsert && fs.EsID {
+			data["_id"] = data[fs.Column]
+		}
+	}
+
+	return data
+}
+
+// StructsToMaps 结构体数组转 map 数组
+func StructsToMaps(arrV reflect.Value, tag string, isInsert bool) []map[string]interface{} {
+	arrLen := arrV.Len() //数组长度
+	if arrLen <= 0 {
+		return nil
+	}
+
+	ss := GetStructSpec(tag, reflect.Indirect(arrV.Index(0)).Type())
+
+	ignores := getIgnores(ss, arrV, arrLen, isInsert)
+
+	datas := []map[string]interface{}{}
+
+	//插入语句
+	for k := 0; k < arrLen; k++ {
+		kv := reflect.Indirect(arrV.Index(k))
+
+		data := map[string]interface{}{}
+
+		for name, fs := range ss.M {
+			if fs.Tag != "orm" {
+				continue
+			}
+
+			iv := kv.FieldByIndex(fs.Index)
+			isEmpty := IsEmpty(iv)
+
+			if ignore := ignores[name]; !ignore {
+				//自动插入当前时间，仅在值为零值时才自动赋值
+				if (fs.OnCreateTime || fs.OnUpdateTime) && isEmpty {
+					data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
+				} else if fs.OnUniqueID && isInsert && isEmpty && iv.Kind() == reflect.Uint64 {
+					data[fs.Column] = snowflake.GenerateID()
+				} else {
+					data[fs.Column] = getValue(fs, iv)
+				}
+
+				if isInsert && fs.EsID {
+					data["_id"] = data[fs.Column]
+				}
+			} else if fs.OnUniqueID && isInsert && isEmpty && iv.Kind() == reflect.Uint64 {
+				data[fs.Column] = snowflake.GenerateID()
+			} else if (fs.OnCreateTime || fs.OnUpdateTime) && isEmpty {
+				data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
+			}
+		}
+
+		datas = append(datas, data)
+	}
+
+	return datas
+}
+
+func getValue(fs *FieldSpec, iv reflect.Value) interface{} {
+	if !iv.CanInterface() {
+		return nil
+	}
+
+	return GetFormatTime(iv.Interface(), fs.TimeFmt)
+}
+
+// getIgnores 获取忽略字段
+func getIgnores(ss *StructSpec,
+	arrV reflect.Value, arrLen int, isInsert bool) map[string]bool {
+	//获取忽略字段
+	ignores := map[string]bool{}
+	for name, fs := range ss.M {
+		if fs.OmitEmpty || (isInsert && fs.OmitInsertEmpty) || (!isInsert && fs.OmitReplaceEmpty) {
+			ignores[name] = true
+		} else {
+			ignores[name] = false
+		}
+	}
+
+	for k := 0; k < arrLen; k++ {
+		kv := reflect.Indirect(arrV.Index(k))
+
+		for name := range ss.M {
+			if ignore := ignores[name]; ignore {
+				iv := kv.FieldByName(name)
+				if !IsEmpty(iv) { // 存在非空值，则该字段不忽略
+					ignores[name] = false
+				}
+			}
+		}
+	}
+
+	return ignores
+}
 
 var (
 	locker = new(sync.RWMutex)
@@ -65,10 +212,10 @@ type FieldSpec struct {
 	OmitInsertEmpty  bool   // INSERT 时忽略零值
 	OmitReplaceEmpty bool   // REPLACE 时忽略零值
 	OmitUpdateEmpty  bool   // UPDATE 时忽略零值
-	OnCreateTime     bool   // INSERT/REPLACE 时初始化为当前时间，具体格式根据 Type 决定，如果是数字类型包括 int、int32、int64 等，则是时间戳，否则就是 time.Time 类型
-	OnUpdateTime     bool   // 数据变更时修改为当前时间，具体格式根据 Type 决定，这里我推荐数据库自带的时间戳更新功能。
+	OnCreateTime     bool   // INSERT/REPLACE 时初始化为当前时间，具体格式根据 Type 决定，如果是数字类型包括 int、int32、int64 等，则是时间戳，否则就是 time.Time 类型，如果设置了该属性，则在插入数据时 omit empty 属性失效。
+	OnUpdateTime     bool   // 数据变更时修改为当前时间，具体格式根据 Type 决定，这里我推荐数据库自带的时间戳更新功能，如果设置了该属性，则在插入/修改数据时 omit empty 属性失效。
 	TimeFmt          string // 当字段底层类型为 time.Time 时，格式化时间，仅针对请求格式化，返回数据的解析在 codec 内。
-	OnUniqueID       bool   // 新增数据时候，如果字段为空值，而且类型为 uint64，则自动生成唯一 ID，记得务必在 orm.yaml 配置里面为每台机器设置不同的 machine_id，否则生成的ID可能会有冲突
+	OnUniqueID       bool   // 新增数据时候，如果字段为空值，而且类型为 uint64，则自动生成唯一 ID，如果设置了该属性，则在插入数据时 omit empty 属性失效，记得务必在 orm.yaml 配置里面为每台机器设置不同的 machine_id，否则生成的ID可能会有冲突。
 	EsID             bool   // 是否 es 主键 _id
 }
 

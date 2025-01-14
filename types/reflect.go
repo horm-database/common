@@ -20,7 +20,21 @@ import (
 
 // IsArray 判断是否 Array 或 Slice
 func IsArray(v reflect.Value) bool {
-	return v.Kind() == reflect.Slice || v.Kind() == reflect.Array
+	k := v.Kind()
+	if k == reflect.Interface {
+		return IsArray(v.Elem())
+	}
+
+	return k == reflect.Slice || k == reflect.Array
+}
+
+func IsMap(v reflect.Value) bool {
+	k := v.Kind()
+	if k == reflect.Interface {
+		return IsMap(v.Elem())
+	}
+
+	return k == reflect.Map
 }
 
 // IsNil 判断变量是否为 nil
@@ -72,23 +86,4 @@ func IsEmpty(v reflect.Value) bool {
 	}
 
 	return v.IsZero()
-}
-
-// From html/template/content.go
-// Copyright 2011 The Go Authors. All rights reserved.
-// indirect returns the value, after dereferencing as many times
-// as necessary to reach the base type (or nil).
-func indirect(a interface{}) interface{} {
-	if a == nil {
-		return nil
-	}
-	if t := reflect.TypeOf(a); t.Kind() != reflect.Ptr {
-		// Avoid creating a reflect.Value if it's not a pointer.
-		return a
-	}
-	v := reflect.ValueOf(a)
-	for v.Kind() == reflect.Ptr && !v.IsNil() {
-		v = v.Elem()
-	}
-	return v.Interface()
 }
