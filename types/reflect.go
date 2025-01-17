@@ -15,7 +15,10 @@
 package types
 
 import (
+	"encoding/json"
+	"go/types"
 	"reflect"
+	"time"
 )
 
 // IsArray 判断是否 Array 或 Slice
@@ -37,6 +40,22 @@ func IsMap(v reflect.Value) bool {
 	return k == reflect.Map
 }
 
+func IsStruct(typ reflect.Type) bool {
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	return typ.Kind() == reflect.Struct
+}
+
+func IsStructArray(v reflect.Value) bool {
+	if !IsArray(v) {
+		return false
+	}
+
+	return IsStruct(v.Type().Elem())
+}
+
 // IsNil 判断变量是否为 nil
 func IsNil(v reflect.Value) bool {
 	k := v.Kind()
@@ -54,6 +73,67 @@ func Interface(v reflect.Value) interface{} {
 	}
 
 	return v.Interface()
+}
+
+// Indirect 获取指针的值
+func Indirect(data interface{}) interface{} {
+	if data == nil {
+		return nil
+	}
+
+	switch v := data.(type) {
+	case *string:
+		return *v
+	case *[]byte:
+		return *v
+	case *bool:
+		return *v
+	case *int:
+		return *v
+	case *int8:
+		return *v
+	case *int16:
+		return *v
+	case *int32:
+		return *v
+	case *int64:
+		return *v
+	case *uint:
+		return *v
+	case *uint8:
+		return *v
+	case *uint16:
+		return *v
+	case *uint32:
+		return *v
+	case *uint64:
+		return *v
+	case *float32:
+		return *v
+	case *float64:
+		return *v
+	case *json.Number:
+		return *v
+	case *types.Map:
+		return *v
+	case *[]types.Map:
+		return *v
+	case *map[string]interface{}:
+		return *v
+	case *[]map[string]interface{}:
+		return *v
+	case *time.Time:
+		return *v
+	case *interface{}:
+		return Indirect(*v)
+	}
+
+	v := reflect.ValueOf(data)
+	if v.Kind() == reflect.Pointer {
+		return v.Elem().Interface()
+	}
+
+	return data
 }
 
 // IsEmpty val 是否是空值

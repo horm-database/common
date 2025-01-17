@@ -23,53 +23,50 @@ import (
 )
 
 const (
+	OpUnknown = 0
 	OpInsert  = 1
 	OpReplace = 2
 	OpUpdate  = 3
 )
 
 // StructToMap 结构体转 map
-func StructToMap(v reflect.Value, tag string, op int8) map[string]interface{} {
-	ss := GetStructSpec(tag, v.Type())
+func StructToMap(v reflect.Value, tag string, op ...int8) map[string]interface{} {
+	ss := GetStructDesc(tag, v.Type())
+
+	var vOp int8 = OpUnknown
+	if len(op) > 0 {
+		vOp = op[0]
+	}
 
 	data := make(map[string]interface{})
 
 	for _, fs := range ss.M {
-		if fs.Tag != tag {
-			continue
-		}
-
 		iv := v.FieldByIndex(fs.Index)
-		isEmpty := IsEmpty(iv)
 
-		if fs.OnUniqueID && op == OpInsert && isEmpty && iv.Kind() == reflect.Uint64 {
-			data[fs.Column] = snowflake.GenerateID()
-			if fs.EsID {
-				data["_id"] = data[fs.Column]
+		if IsEmpty(iv) {
+			if fs.OnUniqueID && vOp == OpInsert {
+				data[fs.Column] = snowflake.GenerateID()
+				if fs.EsID {
+					data["_id"] = data[fs.Column]
+				}
+				continue
 			}
-			continue
-		}
 
-		if fs.OnUpdateTime && isEmpty {
-			//修改时自动赋值当前时间，仅在值为零值时才自动赋值
-			data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
-			continue
-		} else if (op == OpInsert || op == OpReplace) && fs.OnCreateTime && isEmpty {
-			//自动插入当前时间，仅在值为零值时才自动赋值
-			data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
-			continue
-		}
+			if fs.OnUpdateTime || (vOp == OpInsert && fs.OnInsertTime) { //插入/修改时自动赋值当前时间，仅在值为零值时才自动赋值
+				data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
+				continue
+			}
 
-		if isEmpty && (fs.OmitEmpty ||
-			(op == OpInsert && fs.OmitInsertEmpty) ||
-			(op == OpReplace && fs.OmitReplaceEmpty) ||
-			(op == OpUpdate && fs.OmitUpdateEmpty)) { // 忽略零值
-			continue
+			if fs.OmitEmpty || (vOp == OpInsert && fs.OmitInsertEmpty) ||
+				(vOp == OpReplace && fs.OmitReplaceEmpty) ||
+				(vOp == OpUpdate && fs.OmitUpdateEmpty) { // 忽略零值
+				continue
+			}
 		}
 
 		data[fs.Column] = getValue(fs, iv)
 
-		if op == OpInsert && fs.EsID {
+		if vOp == OpInsert && fs.EsID {
 			data["_id"] = data[fs.Column]
 		}
 	}
@@ -78,15 +75,20 @@ func StructToMap(v reflect.Value, tag string, op int8) map[string]interface{} {
 }
 
 // StructsToMaps 结构体数组转 map 数组
-func StructsToMaps(arrV reflect.Value, tag string, isInsert bool) []map[string]interface{} {
+func StructsToMaps(arrV reflect.Value, tag string, op ...int8) []map[string]interface{} {
 	arrLen := arrV.Len() //数组长度
 	if arrLen <= 0 {
-		return nil
+		return []map[string]interface{}{}
 	}
 
-	ss := GetStructSpec(tag, reflect.Indirect(arrV.Index(0)).Type())
+	var vOp int8 = OpUnknown
+	if len(op) > 0 {
+		vOp = op[0]
+	}
 
-	ignores := getIgnores(ss, arrV, arrLen, isInsert)
+	ss := GetStructDesc(tag, reflect.Indirect(arrV.Index(0)).Type())
+
+	ignores := getIgnores(ss, arrV, arrLen, vOp)
 
 	datas := []map[string]interface{}{}
 
@@ -97,30 +99,30 @@ func StructsToMaps(arrV reflect.Value, tag string, isInsert bool) []map[string]i
 		data := map[string]interface{}{}
 
 		for name, fs := range ss.M {
-			if fs.Tag != "orm" {
-				continue
-			}
-
 			iv := kv.FieldByIndex(fs.Index)
-			isEmpty := IsEmpty(iv)
 
-			if ignore := ignores[name]; !ignore {
-				//自动插入当前时间，仅在值为零值时才自动赋值
-				if (fs.OnCreateTime || fs.OnUpdateTime) && isEmpty {
-					data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
-				} else if fs.OnUniqueID && isInsert && isEmpty && iv.Kind() == reflect.Uint64 {
-					data[fs.Column] = snowflake.GenerateID()
-				} else {
-					data[fs.Column] = getValue(fs, iv)
+			if !ignores[name] {
+				if IsEmpty(iv) {
+					if fs.OnUniqueID && vOp == OpInsert {
+						data[fs.Column] = snowflake.GenerateID()
+						if fs.EsID {
+							data["_id"] = data[fs.Column]
+						}
+						continue
+					}
+
+					//自动插入当前时间，仅在值为零值时才自动赋值
+					if fs.OnUpdateTime || (fs.OnInsertTime && vOp == OpInsert) { //插入/修改时自动赋值当前时间，仅在值为零值时才自动赋值
+						data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
+						continue
+					}
 				}
 
-				if isInsert && fs.EsID {
+				data[fs.Column] = getValue(fs, iv)
+
+				if fs.EsID && vOp == OpInsert {
 					data["_id"] = data[fs.Column]
 				}
-			} else if fs.OnUniqueID && isInsert && isEmpty && iv.Kind() == reflect.Uint64 {
-				data[fs.Column] = snowflake.GenerateID()
-			} else if (fs.OnCreateTime || fs.OnUpdateTime) && isEmpty {
-				data[fs.Column] = GetFormatTime(Now(fs.Type), fs.TimeFmt)
 			}
 		}
 
@@ -130,7 +132,7 @@ func StructsToMaps(arrV reflect.Value, tag string, isInsert bool) []map[string]i
 	return datas
 }
 
-func getValue(fs *FieldSpec, iv reflect.Value) interface{} {
+func getValue(fs *FieldDesc, iv reflect.Value) interface{} {
 	if !iv.CanInterface() {
 		return nil
 	}
@@ -139,12 +141,14 @@ func getValue(fs *FieldSpec, iv reflect.Value) interface{} {
 }
 
 // getIgnores 获取忽略字段
-func getIgnores(ss *StructSpec,
-	arrV reflect.Value, arrLen int, isInsert bool) map[string]bool {
+func getIgnores(ss *StructDesc,
+	arrV reflect.Value, arrLen int, op int8) map[string]bool {
 	//获取忽略字段
 	ignores := map[string]bool{}
 	for name, fs := range ss.M {
-		if fs.OmitEmpty || (isInsert && fs.OmitInsertEmpty) || (!isInsert && fs.OmitReplaceEmpty) {
+		if fs.OmitEmpty || (fs.OmitInsertEmpty && op == OpInsert) ||
+			(fs.OmitReplaceEmpty && op == OpReplace) ||
+			(fs.OmitUpdateEmpty && op == OpUpdate) { // 忽略零值
 			ignores[name] = true
 		} else {
 			ignores[name] = false
@@ -154,10 +158,13 @@ func getIgnores(ss *StructSpec,
 	for k := 0; k < arrLen; k++ {
 		kv := reflect.Indirect(arrV.Index(k))
 
-		for name := range ss.M {
+		for name, fs := range ss.M {
 			if ignore := ignores[name]; ignore {
 				iv := kv.FieldByName(name)
-				if !IsEmpty(iv) { // 存在非空值，则该字段不忽略
+				isEmpty := IsEmpty(iv)
+				if !isEmpty { // 存在非空值，则该字段不忽略
+					ignores[name] = false
+				} else if fs.OnUpdateTime || (op == OpInsert && (fs.OnUniqueID || fs.OnInsertTime)) { // 自动主键生成，自动生成插入时间，更新时间，该字段不忽略
 					ignores[name] = false
 				}
 			}
@@ -169,17 +176,17 @@ func getIgnores(ss *StructSpec,
 
 var (
 	locker = new(sync.RWMutex)
-	cache  = make(map[reflect.Type]*StructSpec)
+	cache  = make(map[reflect.Type]*StructDesc)
 )
 
-type StructSpec struct {
-	M  map[string]*FieldSpec
-	Cm map[string]*FieldSpec
-	Fs []*FieldSpec
+type StructDesc struct {
+	M  map[string]*FieldDesc
+	Cm map[string]*FieldDesc
+	Fs []*FieldDesc
 }
 
-// GetStructSpec get structure tag info
-func GetStructSpec(tagName string, t reflect.Type) *StructSpec {
+// GetStructDesc get structure tag info
+func GetStructDesc(tag string, t reflect.Type) *StructDesc {
 	locker.RLock()
 	ss, found := cache[t]
 	locker.RUnlock()
@@ -194,14 +201,14 @@ func GetStructSpec(tagName string, t reflect.Type) *StructSpec {
 		return ss
 	}
 
-	ss = &StructSpec{M: make(map[string]*FieldSpec), Cm: make(map[string]*FieldSpec)}
-	compileStructSpec(tagName, t, make(map[string]int), nil, ss)
+	ss = &StructDesc{M: make(map[string]*FieldDesc), Cm: make(map[string]*FieldDesc)}
+	compileStructDesc(tag, t, make(map[string]int), nil, ss)
 	cache[t] = ss
 	return ss
 }
 
-// FieldSpec body 标签解析结果
-type FieldSpec struct {
+// FieldDesc body 标签解析结果
+type FieldDesc struct {
 	Tag              string // tag
 	Name             string // 字段名
 	I                int    // 位置
@@ -212,14 +219,14 @@ type FieldSpec struct {
 	OmitInsertEmpty  bool   // INSERT 时忽略零值
 	OmitReplaceEmpty bool   // REPLACE 时忽略零值
 	OmitUpdateEmpty  bool   // UPDATE 时忽略零值
-	OnCreateTime     bool   // INSERT/REPLACE 时初始化为当前时间，具体格式根据 Type 决定，如果是数字类型包括 int、int32、int64 等，则是时间戳，否则就是 time.Time 类型，如果设置了该属性，则在插入数据时 omit empty 属性失效。
+	OnInsertTime     bool   // INSERT 时初始化为当前时间，具体格式根据 Type 决定，如果是数字类型包括 int、int32、int64 等，则是时间戳，否则就是 time.Time 类型，如果设置了该属性，则在插入数据时 omit empty 属性失效。
 	OnUpdateTime     bool   // 数据变更时修改为当前时间，具体格式根据 Type 决定，这里我推荐数据库自带的时间戳更新功能，如果设置了该属性，则在插入/修改数据时 omit empty 属性失效。
 	TimeFmt          string // 当字段底层类型为 time.Time 时，格式化时间，仅针对请求格式化，返回数据的解析在 codec 内。
 	OnUniqueID       bool   // 新增数据时候，如果字段为空值，而且类型为 uint64，则自动生成唯一 ID，如果设置了该属性，则在插入数据时 omit empty 属性失效，记得务必在 orm.yaml 配置里面为每台机器设置不同的 machine_id，否则生成的ID可能会有冲突。
 	EsID             bool   // 是否 es 主键 _id
 }
 
-func compileStructSpec(tagName string, t reflect.Type, depth map[string]int, index []int, ss *StructSpec) {
+func compileStructDesc(tagName string, t reflect.Type, depth map[string]int, index []int, ss *StructDesc) {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		switch {
@@ -231,11 +238,11 @@ func compileStructSpec(tagName string, t reflect.Type, depth map[string]int, ind
 				typ = typ.Elem()
 			}
 
-			if typ.Kind() == reflect.Struct {
-				compileStructSpec(tagName, typ, depth, append(index, i), ss)
+			if IsStruct(typ) {
+				compileStructDesc(tagName, typ, depth, append(index, i), ss)
 			}
 		default:
-			fs := &FieldSpec{Name: f.Name, I: i}
+			fs := &FieldDesc{Name: f.Name, I: i}
 			var tag string
 
 			if tagName != "" {
@@ -274,7 +281,7 @@ func compileStructSpec(tagName string, t reflect.Type, depth map[string]int, ind
 				}
 
 				if len(p) > 1 {
-					isOmitOn := passFieldSpec(p[1], fs)
+					isOmitOn := passFieldDesc(p[1], fs)
 					if !isOmitOn {
 						fs.Type = OrmType[strings.ToLower(p[1])]
 					}
@@ -282,7 +289,7 @@ func compileStructSpec(tagName string, t reflect.Type, depth map[string]int, ind
 
 				if len(p) > 2 {
 					for _, s := range p[2:] {
-						_ = passFieldSpec(s, fs)
+						_ = passFieldDesc(s, fs)
 					}
 				}
 			}
@@ -316,7 +323,7 @@ func compileStructSpec(tagName string, t reflect.Type, depth map[string]int, ind
 	}
 }
 
-func passFieldSpec(s string, fs *FieldSpec) bool {
+func passFieldDesc(s string, fs *FieldDesc) bool {
 	s = strings.TrimSpace(s)
 
 	if strings.HasPrefix(s, "time_fmt") {
@@ -336,8 +343,8 @@ func passFieldSpec(s string, fs *FieldSpec) bool {
 	case "omitupdateempty":
 		fs.OmitUpdateEmpty = true
 		return true
-	case "oncreatetime":
-		fs.OnCreateTime = true
+	case "oninserttime":
+		fs.OnInsertTime = true
 		return true
 	case "onupdatetime":
 		fs.OnUpdateTime = true

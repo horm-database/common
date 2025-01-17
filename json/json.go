@@ -17,6 +17,8 @@ package json
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"time"
 
 	"github.com/horm-database/common/types"
 
@@ -79,71 +81,18 @@ func MarshalBase(value interface{}, encodeType ...int8) ([]byte, error) {
 	}
 
 	switch v := value.(type) {
-	case string:
-		return types.StringToBytes(v), nil
-	case *string:
-		return types.StringToBytes(*v), nil
 	case []byte:
 		return v, nil
 	case *[]byte:
 		return *v, nil
-	case bool:
-		return types.StringToBytes(fmt.Sprintf("%v", v)), nil
-	case *bool:
-		return types.StringToBytes(fmt.Sprintf("%v", *v)), nil
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		return types.StringToBytes(fmt.Sprintf("%d", v)), nil
-	case *int:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case *int8:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case *int16:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case *int32:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case *int64:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case *uint:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case *uint8:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case *uint16:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case *uint32:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case *uint64:
-		return types.StringToBytes(fmt.Sprintf("%d", *v)), nil
-	case float32, float64:
-		return types.StringToBytes(fmt.Sprintf("%f", v)), nil
-	case *float32:
-		return types.StringToBytes(fmt.Sprintf("%f", *v)), nil
-	case *float64:
-		return types.StringToBytes(fmt.Sprintf("%f", *v)), nil
-	case json.Number:
-		return types.StringToBytes(v.String()), nil
-	case *json.Number:
-		return types.StringToBytes(v.String()), nil
-	case *interface{}:
-		return MarshalBase(*v, encodeType...)
-	default:
-		var result []byte
-		var err error
-
-		if len(encodeType) > 0 {
-			switch encodeType[0] {
-			case EncodeTypeFast:
-				result, err = FastApi.Marshal(v)
-			case EncodeTypeSort:
-				result, err = SortApi.Marshal(v)
-			default:
-				result, err = Api.Marshal(v)
-			}
-		} else {
-			result, err = Api.Marshal(v)
-		}
-
-		return result, err
 	}
+
+	tmp, err := MarshalBaseToString(value, encodeType...)
+	if err != nil {
+		return nil, err
+	}
+
+	return types.StringToBytes(tmp), nil
 }
 
 // MarshalBaseToString marshal data to string other than base structure
@@ -152,70 +101,32 @@ func MarshalBaseToString(value interface{}, encodeType ...int8) (string, error) 
 		return "", nil
 	}
 
-	switch v := value.(type) {
+	val := types.Indirect(value)
+	switch v := val.(type) {
 	case string:
 		return v, nil
-	case *string:
-		return *v, nil
 	case []byte:
 		return types.BytesToString(v), nil
-	case *[]byte:
-		return types.BytesToString(*v), nil
 	case bool:
 		return fmt.Sprintf("%v", v), nil
-	case *bool:
-		return fmt.Sprintf("%v", *v), nil
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 		return fmt.Sprintf("%d", v), nil
-	case *int:
-		return fmt.Sprintf("%d", *v), nil
-	case *int8:
-		return fmt.Sprintf("%d", *v), nil
-	case *int16:
-		return fmt.Sprintf("%d", *v), nil
-	case *int32:
-		return fmt.Sprintf("%d", *v), nil
-	case *int64:
-		return fmt.Sprintf("%d", *v), nil
-	case *uint:
-		return fmt.Sprintf("%d", *v), nil
-	case *uint8:
-		return fmt.Sprintf("%d", *v), nil
-	case *uint16:
-		return fmt.Sprintf("%d", *v), nil
-	case *uint32:
-		return fmt.Sprintf("%d", *v), nil
-	case *uint64:
-		return fmt.Sprintf("%d", *v), nil
 	case float32, float64:
 		return fmt.Sprintf("%f", v), nil
-	case *float32:
-		return fmt.Sprintf("%f", *v), nil
-	case *float64:
-		return fmt.Sprintf("%f", *v), nil
 	case json.Number:
 		return v.String(), nil
-	case *json.Number:
-		return v.String(), nil
-	case *interface{}:
-		return MarshalBaseToString(*v, encodeType...)
-	default:
-		var result []byte
-		var err error
-
-		if len(encodeType) > 0 {
-			switch encodeType[0] {
-			case EncodeTypeFast:
-				result, err = FastApi.Marshal(v)
-			case EncodeTypeSort:
-				result, err = SortApi.Marshal(v)
-			default:
-				result, err = Api.Marshal(v)
-			}
-		} else {
-			result, err = Api.Marshal(v)
-		}
-
-		return types.BytesToString(result), err
+	case time.Time:
+		return v.Format(time.RFC3339Nano), nil
+	case types.Map, []types.Map, map[string]interface{}, []map[string]interface{}:
+		return MarshalToString(v, encodeType...), nil
 	}
+
+	rv := reflect.ValueOf(val)
+	if types.IsStruct(rv.Type()) {
+		return MarshalToString(types.StructToMap(rv, ""), encodeType...), nil
+	} else if types.IsStructArray(rv) {
+		return MarshalToString(types.StructsToMaps(rv, ""), encodeType...), nil
+	}
+
+	return MarshalToString(value), nil
 }

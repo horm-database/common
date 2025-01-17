@@ -45,6 +45,7 @@ type Request struct {
 	From   uint64    `json:"from,omitempty"`   // offset
 
 	// data update
+	Val   interface{}              `json:"val,omitempty"`   // set val (not map/[]map)
 	Data  types.Map                `json:"data,omitempty"`  // add/update one data
 	Datas []map[string]interface{} `json:"datas,omitempty"` // batch add/update data
 
@@ -60,9 +61,9 @@ type Request struct {
 	Scroll *proto.Scroll `json:"scroll,omitempty"` // scroll info
 
 	// for some other databases such as redis ...
-	Prefix string        `json:"prefix,omitempty"` // prefix, it is strongly recommended to bring it to facilitate finer-grained summary statistics, otherwise the statistical granularity can only be cmd ，such as GET、SET、HGET ...
-	Key    string        `json:"key,omitempty"`    // key
-	Args   []interface{} `json:"args,omitempty"`   // args
+	Prefix string   `json:"prefix,omitempty"` // prefix, it is strongly recommended to bring it to facilitate finer-grained summary statistics, otherwise the statistical granularity can only be cmd ，such as GET、SET、HGET ...
+	Key    string   `json:"key,omitempty"`    // key
+	Keys   []string `json:"keys,omitempty"`   // keys
 
 	// bytes 字节流
 	Bytes []byte `json:"bytes,omitempty"`
@@ -71,7 +72,8 @@ type Request struct {
 	Params types.Map `json:"params,omitempty"`
 
 	// query
-	Query string `json:"query,omitempty"` // 直接送 query 语句，需要拥有库的 表权限、或 root 权限。具体参数为 args
+	Query string        `json:"query,omitempty"` // 直接送 query 语句，需要拥有库的 表权限、或 root 权限。具体参数为 args
+	Args  []interface{} `json:"args,omitempty"`  // args
 
 	// db address will be changing if Addr is set by plugin
 	Addr *util.DBAddress

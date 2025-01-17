@@ -179,7 +179,7 @@ func (m Map) GetTime(key string, loc *time.Location, layout ...string) (ret time
 		return time.Time{}, false, nil
 	}
 
-	ret, err = ToTime(value, loc, layout...)
+	ret, err = ParseTime(value, loc, layout...)
 	return ret, true, err
 }
 
@@ -197,7 +197,7 @@ func (m Map) GetMap(key string) (ret Map, exist bool, err error) {
 		return nil, true, nil
 	}
 
-	ret, err = ToMap(value)
+	ret, err = ToMap(value, "")
 	return ret, true, err
 }
 
@@ -283,7 +283,7 @@ func (m Map) GetMapArray(key string) (ret []Map, exist bool, err error) {
 		return nil, true, nil
 	}
 
-	mapArr, err := ToMapArray(value)
+	mapArr, err := ToMapArray(value, "")
 	return mapArr, true, err
 }
 

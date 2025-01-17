@@ -18,7 +18,6 @@ import (
 	"errors"
 	"reflect"
 	"strconv"
-	"time"
 	"unsafe"
 
 	"github.com/spf13/cast"
@@ -224,10 +223,6 @@ func ToUint32(value interface{}) (uint32, error) {
 	}
 }
 
-func ToTime(value interface{}, loc *time.Location, layout ...string) (time.Time, error) {
-	return ParseTime(value, loc, layout...)
-}
-
 // ToArray 接口转数组
 func ToArray(value interface{}) (ret []interface{}, err error) {
 	if value == nil {
@@ -238,6 +233,12 @@ func ToArray(value interface{}) (ret []interface{}, err error) {
 	case []interface{}:
 		return val, nil
 	case []map[string]interface{}:
+		ret = make([]interface{}, len(val))
+		for k, v := range val {
+			ret[k] = v
+		}
+		return
+	case []Map:
 		ret = make([]interface{}, len(val))
 		for k, v := range val {
 			ret[k] = v
@@ -268,94 +269,58 @@ func ToArray(value interface{}) (ret []interface{}, err error) {
 }
 
 // ToMap 接口转 map
-func ToMap(value interface{}) (map[string]interface{}, error) {
-	if value == nil {
-		return map[string]interface{}{}, nil
-	}
-
-	result, ok := value.(map[string]interface{})
-	if ok {
-		return result, nil
-	}
-
-	result = map[string]interface{}{}
-
-	rv := reflect.Indirect(reflect.ValueOf(value))
-
-	switch rv.Kind() {
-	case reflect.Struct:
-		ss := GetStructSpec("", rv.Type())
-		for _, f := range ss.Fs {
-			val := rv.FieldByIndex(f.Index)
-			field := f.Column
-			if field == "" {
-				field = f.Name
-			}
-			result[field] = Interface(val)
-		}
-
-		return result, nil
-	case reflect.Map:
-		for _, k := range rv.MapKeys() {
-			result[k.String()] = Interface(rv.MapIndex(k))
-		}
-
-		return result, nil
-	default:
-		return map[string]interface{}{}, errors.New("value is not map")
-	}
-}
-
-// ToMapArray 接口转map数组
-func ToMapArray(value interface{}) (ret []Map, err error) {
+func ToMap(value interface{}, tag string, op ...int8) (Map, error) {
 	if value == nil {
 		return nil, nil
 	}
 
-	switch arrVal := value.(type) {
-	case []Map:
-		return arrVal, nil
-	case []interface{}:
-		ret = make([]Map, len(arrVal))
-		for k, arrItem := range arrVal {
-			im, e := ToMap(arrItem)
-			if e != nil {
-				return nil, e
-			}
-			ret[k] = im
-		}
-	case []map[string]interface{}:
-		ret = make([]Map, len(arrVal))
-		for k, arrItem := range arrVal {
-			ret[k] = arrItem
-		}
-	default:
-		v := reflect.ValueOf(value)
-		if IsNil(v) {
-			return nil, nil
-		}
+	val := Indirect(value)
 
-		if v.Kind() == reflect.Ptr {
-			v = v.Elem()
-		}
-
-		if !IsArray(v) {
-			return nil, errors.New("value is not array")
-		}
-
-		l := v.Len()
-		ret = make([]Map, l)
-
-		for i := 0; i < l; i++ {
-			im, e := ToMap(Interface(v.Index(i)))
-			if e != nil {
-				return nil, e
-			}
-			ret[i] = im
-		}
+	switch v := val.(type) {
+	case Map:
+		return v, nil
+	case map[string]interface{}:
+		return v, nil
 	}
 
-	return ret, nil
+	rv := reflect.ValueOf(val)
+	if IsStruct(rv.Type()) {
+		return StructToMap(rv, tag, op...), nil
+	}
+
+	return nil, errors.New("value is not map")
+}
+
+// ToMapArray 接口转map数组
+func ToMapArray(value interface{}, tag string, op ...int8) (ret []Map, err error) {
+	if value == nil {
+		return nil, nil
+	}
+
+	val := Indirect(value)
+
+	switch v := val.(type) {
+	case []Map:
+		return v, nil
+	case []map[string]interface{}:
+		ret = make([]Map, len(v))
+		for i, m := range v {
+			ret[i] = m
+		}
+		return ret, nil
+	}
+
+	rv := reflect.ValueOf(value)
+	if IsStructArray(rv) {
+		v := StructsToMaps(rv, tag, op...)
+		ret = make([]Map, len(v))
+		for i, m := range v {
+			ret[i] = m
+		}
+		return ret, nil
+	}
+
+	return nil, errors.New("value is not map array")
 }
 
 // ToStringArray 接口转字符串数组
@@ -376,8 +341,7 @@ func ToStringArray(value interface{}) ([]string, error) {
 	}
 
 	rv := reflect.Indirect(reflect.ValueOf(value))
-
-	if rv.Kind() == reflect.Array || rv.Kind() == reflect.Slice {
+	if IsArray(rv) {
 		l := rv.Len()
 		ret := make([]string, l)
 
@@ -412,8 +376,7 @@ func ToInt64Array(value interface{}) (ret []int64, err error) {
 	}
 
 	rv := reflect.Indirect(reflect.ValueOf(value))
-
-	if rv.Kind() == reflect.Array || rv.Kind() == reflect.Slice {
+	if IsArray(rv) {
 		l := rv.Len()
 		ret = make([]int64, l)
 
@@ -451,8 +414,7 @@ func ToUint64Array(value interface{}) (ret []uint64, err error) {
 	}
 
 	rv := reflect.Indirect(reflect.ValueOf(value))
-
-	if rv.Kind() == reflect.Array || rv.Kind() == reflect.Slice {
+	if IsArray(rv) {
 		l := rv.Len()
 		ret = make([]uint64, l)
 
@@ -490,8 +452,7 @@ func ToFloat64Array(value interface{}) (ret []float64, err error) {
 	}
 
 	rv := reflect.Indirect(reflect.ValueOf(value))
-
-	if rv.Kind() == reflect.Array || rv.Kind() == reflect.Slice {
+	if IsArray(rv) {
 		l := rv.Len()
 		ret = make([]float64, l)
 

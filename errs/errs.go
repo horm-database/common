@@ -96,8 +96,9 @@ const (
 
 	ErrElasticQuery = 550 // new elastic client error
 
-	ErrRedisDo     = 570 //redis do error
-	ErrRedisDecode = 571 //redis 结果解码 失败
+	ErrRedisDo       = 570 //redis do error
+	ErrRedisReqParse = 571 //redis 请求解析 失败
+	ErrRedisDecode   = 572 //redis 结果解码 失败
 
 	// 插件错误
 	ErrPluginConfigDecode    = 601 // 插件配置解压失败
