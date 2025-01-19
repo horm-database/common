@@ -18,6 +18,7 @@ import (
 	"errors"
 	"reflect"
 	"strconv"
+	"time"
 	"unsafe"
 
 	"github.com/spf13/cast"
@@ -25,7 +26,20 @@ import (
 
 // ToString 接口转字符串
 func ToString(value interface{}) string {
-	return cast.ToString(value)
+	switch v := value.(type) {
+	case string:
+		return v
+	case *string:
+		return *v
+	case []byte:
+		return string(v)
+	case *[]byte:
+		return string(*v)
+	case time.Time:
+		return v.Format(time.RFC3339Nano)
+	default:
+		return cast.ToString(value)
+	}
 }
 
 // ToBytes 接口转字节码
@@ -47,6 +61,10 @@ func ToBytes(value interface{}) []byte {
 
 func ToBool(value interface{}) bool {
 	switch v := value.(type) {
+	case bool:
+		return v
+	case *bool:
+		return *v
 	case []byte:
 		b, _ := strconv.ParseBool(BytesToString(v))
 		return b
@@ -64,6 +82,10 @@ func ToInt64(value interface{}) (int64, error) {
 	}
 
 	switch v := value.(type) {
+	case int64:
+		return v, nil
+	case *int64:
+		return *v, nil
 	case []byte:
 		return strconv.ParseInt(BytesToString(v), 10, 64)
 	case *[]byte:
@@ -79,6 +101,10 @@ func ToUint64(value interface{}) (uint64, error) {
 	}
 
 	switch v := value.(type) {
+	case uint64:
+		return v, nil
+	case *uint64:
+		return *v, nil
 	case []byte:
 		return ToUint64(BytesToString(v))
 	case *[]byte:
@@ -94,6 +120,10 @@ func ToFloat64(value interface{}) (float64, error) {
 	}
 
 	switch v := value.(type) {
+	case float64:
+		return v, nil
+	case *float64:
+		return *v, nil
 	case []byte:
 		return ToFloat64(BytesToString(v))
 	case *[]byte:
@@ -109,6 +139,10 @@ func ToInt(value interface{}) (int, error) {
 	}
 
 	switch v := value.(type) {
+	case int:
+		return v, nil
+	case *int:
+		return *v, nil
 	case []byte:
 		return ToInt(BytesToString(v))
 	case *[]byte:
@@ -124,6 +158,10 @@ func ToInt8(value interface{}) (int8, error) {
 	}
 
 	switch v := value.(type) {
+	case int8:
+		return v, nil
+	case *int8:
+		return *v, nil
 	case []byte:
 		return ToInt8(BytesToString(v))
 	case *[]byte:
@@ -139,6 +177,10 @@ func ToInt16(value interface{}) (int16, error) {
 	}
 
 	switch v := value.(type) {
+	case int16:
+		return v, nil
+	case *int16:
+		return *v, nil
 	case []byte:
 		return ToInt16(BytesToString(v))
 	case *[]byte:
@@ -154,6 +196,10 @@ func ToInt32(value interface{}) (int32, error) {
 	}
 
 	switch v := value.(type) {
+	case int32:
+		return v, nil
+	case *int32:
+		return *v, nil
 	case []byte:
 		return ToInt32(BytesToString(v))
 	case *[]byte:
@@ -169,6 +215,10 @@ func ToUint(value interface{}) (uint, error) {
 	}
 
 	switch v := value.(type) {
+	case uint:
+		return v, nil
+	case *uint:
+		return *v, nil
 	case []byte:
 		return ToUint(BytesToString(v))
 	case *[]byte:
@@ -184,6 +234,10 @@ func ToUint8(value interface{}) (uint8, error) {
 	}
 
 	switch v := value.(type) {
+	case uint8:
+		return v, nil
+	case *uint8:
+		return *v, nil
 	case []byte:
 		return ToUint8(BytesToString(v))
 	case *[]byte:
@@ -199,6 +253,10 @@ func ToUint16(value interface{}) (uint16, error) {
 	}
 
 	switch v := value.(type) {
+	case uint16:
+		return v, nil
+	case *uint16:
+		return *v, nil
 	case []byte:
 		return ToUint16(BytesToString(v))
 	case *[]byte:
@@ -214,6 +272,10 @@ func ToUint32(value interface{}) (uint32, error) {
 	}
 
 	switch v := value.(type) {
+	case uint32:
+		return v, nil
+	case *uint32:
+		return *v, nil
 	case []byte:
 		return ToUint32(BytesToString(v))
 	case *[]byte:
@@ -244,16 +306,46 @@ func ToArray(value interface{}) (ret []interface{}, err error) {
 			ret[k] = v
 		}
 		return
+	case []string:
+		ret = make([]interface{}, len(val))
+		for k, v := range val {
+			ret[k] = v
+		}
+		return
+	case []int:
+		ret = make([]interface{}, len(val))
+		for k, v := range val {
+			ret[k] = v
+		}
+		return
+	case []int64:
+		ret = make([]interface{}, len(val))
+		for k, v := range val {
+			ret[k] = v
+		}
+		return
+	case []uint64:
+		ret = make([]interface{}, len(val))
+		for k, v := range val {
+			ret[k] = v
+		}
+		return
+	case []float32:
+		ret = make([]interface{}, len(val))
+		for k, v := range val {
+			ret[k] = v
+		}
+		return
+	case []float64:
+		ret = make([]interface{}, len(val))
+		for k, v := range val {
+			ret[k] = v
+		}
+		return
+	case []byte:
+		return nil, errors.New("value is a bytes")
 	default:
-		v := reflect.ValueOf(value)
-		if IsNil(v) {
-			return nil, nil
-		}
-
-		if v.Kind() == reflect.Ptr {
-			v = v.Elem()
-		}
-
+		v := reflect.Indirect(reflect.ValueOf(value))
 		if !IsArray(v) {
 			return nil, errors.New("value is not array")
 		}
@@ -275,7 +367,6 @@ func ToMap(value interface{}, tag string, op ...int8) (Map, error) {
 	}
 
 	val := Indirect(value)
-
 	switch v := val.(type) {
 	case Map:
 		return v, nil
@@ -288,7 +379,17 @@ func ToMap(value interface{}, tag string, op ...int8) (Map, error) {
 		return StructToMap(rv, tag, op...), nil
 	}
 
-	return nil, errors.New("value is not map")
+	if rv.Kind() != reflect.Map {
+		return nil, errors.New("value is not map")
+	}
+
+	// 将非 string 的 key 转化为 string
+	ret := make(map[string]interface{}, rv.Len())
+	for _, k := range rv.MapKeys() {
+		ret[ToString(Interface(k))] = Interface(rv.MapIndex(k))
+	}
+
+	return ret, nil
 }
 
 // ToMapArray 接口转map数组

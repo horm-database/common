@@ -72,6 +72,10 @@ func Interface(v reflect.Value) interface{} {
 		return nil
 	}
 
+	if !v.CanInterface() {
+		return nil
+	}
+
 	return v.Interface()
 }
 

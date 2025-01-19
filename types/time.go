@@ -66,6 +66,10 @@ func RegisterTime(t reflect.Type) error {
 
 // GetRealTime 如果是时间类型，则强制转化为 time.Time 返回。
 func GetRealTime(data interface{}) (time.Time, bool) {
+	if data == nil {
+		return time.Time{}, false
+	}
+
 	switch t := data.(type) {
 	case time.Time:
 		return t, true

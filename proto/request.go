@@ -52,19 +52,19 @@ type Unit struct {
 	Scroll *Scroll `json:"scroll,omitempty"` // scroll info
 
 	// for databases such as redis ...
-	Prefix string   `json:"prefix,omitempty"` // prefix, It is strongly recommended to bring it to facilitate finer-grained summary statistics, otherwise the statistical granularity can only be cmd ，such as GET、SET、HGET ...
-	Key    string   `json:"key,omitempty"`    // key
-	Keys   []string `json:"keys,omitempty"`   // keys
+	Prefix string `json:"prefix,omitempty"` // prefix, It is strongly recommended to bring it to facilitate finer-grained summary statistics, otherwise the statistical granularity can only be cmd ，such as GET、SET、HGET ...
+	Key    string `json:"key,omitempty"`    // key
+	Field  string `json:"field,omitempty"`  // redis hash field
 
 	// bytes 字节流
 	Bytes []byte `json:"bytes,omitempty"`
 
-	// params 与数据库特性相关的附加参数，例如 redis 的 WITHSCORES，以及 elastic 的 refresh、collapse、runtime_mappings、track_total_hits 等等。
+	// params 与数据库特性相关的附加参数，例如 redis 的 withscores、EX、NX、等，以及 elastic 的 refresh、collapse、runtime_mappings、track_total_hits 等等。
 	Params map[string]interface{} `json:"params,omitempty"`
 
 	// 直接送 Query 语句，需要拥有库的 表权限、或 root 权限。具体参数为 args
 	Query string        `json:"query,omitempty"`
-	Args  []interface{} `json:"args,omitempty"` // args 参数的数据类型存于 data_type
+	Args  []interface{} `json:"args,omitempty"` // args 主要用于 query 语句的参数，还可能用于 redis 协议，如 MGET、HMGET、HDEL 等， args 参数的数据类型存于 data_type
 
 	// Extend 扩展信息，作用于插件
 	Extend map[string]interface{} `json:"extend,omitempty"`

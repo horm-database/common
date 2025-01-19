@@ -33,10 +33,16 @@ const (
 	RedisRetTypeMemberScore RetType = 8 // 有序成员
 )
 
-func GetRedisRetType(op string, withScore bool) RetType {
+func GetRedisRetType(op string, withscores, countExists bool) RetType {
 	switch op {
-	case OpGet, OpGetSet, OpHGet, OpLPop, OpRPop:
+	case OpGet, OpGetSet, OpHGet:
 		return RedisRetTypeString
+	case OpLPop, OpRPop, OpSRandMember, OpSPop:
+		if countExists {
+			return RedisRetTypeStrings
+		} else {
+			return RedisRetTypeString
+		}
 	case OpSet, OpExists, OpSetNX, OpSetBit, OpGetBit, OpHSetNx, OpHExists, OpSIsMember:
 		return RedisRetTypeBool
 	case OpTTL, OpDel, OpIncr, OpDecr, OpIncrBy, OpBitCount, OpHIncrBy, OpHDel, OpHLen,
@@ -45,12 +51,12 @@ func GetRedisRetType(op string, withScore bool) RetType {
 		return RedisRetTypeInt64
 	case OpHIncrByFloat, OpZIncrBy, OpZScore:
 		return RedisRetTypeFloat64
-	case OpMGet, OpHKeys, OpHVals, OpSMembers, OpSRandMember, OpSPop:
+	case OpMGet, OpHKeys, OpHVals, OpSMembers:
 		return RedisRetTypeStrings
 	case OpHGetAll, OpHMGet:
 		return RedisRetTypeMapString
 	case OpZRange, OpZRangeByScore, OpZRevRange, OpZRevRangeByScore:
-		if withScore {
+		if withscores {
 			return RedisRetTypeMemberScore
 		} else {
 			return RedisRetTypeStrings
@@ -93,3 +99,59 @@ func GetDataType(v interface{}) types.Type {
 		return 0
 	}
 }
+
+// RedisParamInfo redis 请求参数信息
+type RedisParamInfo struct {
+	Name    string // 参数名称
+	Cnt     int    // 参数个数
+	JustVal bool   // 仅用到值，不需要Name
+}
+
+func FindRedisParam(paramInfos []*RedisParamInfo, name string) (*RedisParamInfo, bool) {
+	for _, arg := range paramInfos {
+		if arg.Name == name {
+			return arg, true
+		}
+	}
+
+	return nil, false
+}
+
+var (
+	// SetParams [NX | XX] [GET] [EX seconds | PX milliseconds | EXAT unix-time-seconds | PXAT unix-time-milliseconds | KEEPTTL]
+	SetParams = []*RedisParamInfo{
+		{"NX", 1, false},      // NX   * seconds -- Set the specified expire time, in seconds (a positive integer).
+		{"XX", 1, false},      // XX  * milliseconds -- Set the specified expire time, in milliseconds (a positive integer).
+		{"GET", 1, false},     // GET  * Return the old string stored at key, or nil if key did not exist. An error is returned and SET aborted if the value stored at key is not a string.
+		{"EX", 2, false},      // EX seconds   * seconds -- Set the specified expire time, in seconds (a positive integer).
+		{"PX", 2, false},      // PX milliseconds   * milliseconds -- Set the specified expire time, in milliseconds (a positive integer).
+		{"EXAT", 2, false},    // EXAT unix-time-seconds * timestamp-seconds -- Set the specified Unix time at which the key will expire, in seconds (a positive integer).
+		{"PXAT", 2, false},    // PXAT unix-time-milliseconds  *timestamp-milliseconds -- Set the specified Unix time at which the key will expire, in milliseconds (a positive integer).
+		{"KEEPTTL", 1, false}, // KEEPTTL   * Retain the time to live associated with the key.
+	}
+
+	SetExParams = []*RedisParamInfo{
+		{"seconds", 2, true}, // seconds * Set the specified expire time, in seconds (a positive integer).
+	}
+
+	SetGetBitParams = []*RedisParamInfo{
+		{"offset", 2, true},
+		{"value", 2, true},
+	}
+
+	// BitCountParams [start end [BYTE | BIT]]
+	BitCountParams = []*RedisParamInfo{
+		{"start", 2, true},
+		{"end", 2, true},
+		{"BYTE", 1, false},
+		{"BIT", 1, false},
+	}
+
+	CountParams = []*RedisParamInfo{
+		{"count", 2, true},
+	}
+
+	SMoveParams = []*RedisParamInfo{
+		{"destination", 2, true},
+	}
+)

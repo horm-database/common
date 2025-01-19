@@ -16,7 +16,6 @@ package json
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"time"
 
@@ -75,58 +74,44 @@ func Marshal(data interface{}, encodeType ...int8) []byte {
 }
 
 // MarshalBase marshal data other than base structure
-func MarshalBase(value interface{}, encodeType ...int8) ([]byte, error) {
+func MarshalBase(value interface{}, encodeType ...int8) []byte {
 	if value == nil {
-		return types.StringToBytes(""), nil
+		return types.StringToBytes("")
 	}
 
 	switch v := value.(type) {
 	case []byte:
-		return v, nil
+		return v
 	case *[]byte:
-		return *v, nil
+		return *v
 	}
 
-	tmp, err := MarshalBaseToString(value, encodeType...)
-	if err != nil {
-		return nil, err
-	}
-
-	return types.StringToBytes(tmp), nil
+	return types.StringToBytes(MarshalBaseToString(value, encodeType...))
 }
 
 // MarshalBaseToString marshal data to string other than base structure
-func MarshalBaseToString(value interface{}, encodeType ...int8) (string, error) {
+func MarshalBaseToString(value interface{}, encodeType ...int8) string {
 	if value == nil {
-		return "", nil
+		return ""
 	}
 
 	val := types.Indirect(value)
 	switch v := val.(type) {
-	case string:
-		return v, nil
-	case []byte:
-		return types.BytesToString(v), nil
-	case bool:
-		return fmt.Sprintf("%v", v), nil
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		return fmt.Sprintf("%d", v), nil
-	case float32, float64:
-		return fmt.Sprintf("%f", v), nil
-	case json.Number:
-		return v.String(), nil
+	case string, []byte, bool, float32, float64, json.Number,
+		int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return types.ToString(v)
 	case time.Time:
-		return v.Format(time.RFC3339Nano), nil
+		return v.Format(time.RFC3339Nano)
 	case types.Map, []types.Map, map[string]interface{}, []map[string]interface{}:
-		return MarshalToString(v, encodeType...), nil
+		return MarshalToString(v, encodeType...)
 	}
 
 	rv := reflect.ValueOf(val)
 	if types.IsStruct(rv.Type()) {
-		return MarshalToString(types.StructToMap(rv, ""), encodeType...), nil
+		return MarshalToString(types.StructToMap(rv, ""), encodeType...)
 	} else if types.IsStructArray(rv) {
-		return MarshalToString(types.StructsToMaps(rv, ""), encodeType...), nil
+		return MarshalToString(types.StructsToMaps(rv, ""), encodeType...)
 	}
 
-	return MarshalToString(value), nil
+	return MarshalToString(value)
 }

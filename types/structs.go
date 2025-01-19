@@ -133,11 +133,7 @@ func StructsToMaps(arrV reflect.Value, tag string, op ...int8) []map[string]inte
 }
 
 func getValue(fs *FieldDesc, iv reflect.Value) interface{} {
-	if !iv.CanInterface() {
-		return nil
-	}
-
-	return GetFormatTime(iv.Interface(), fs.TimeFmt)
+	return GetFormatTime(Interface(iv), fs.TimeFmt)
 }
 
 // getIgnores 获取忽略字段
