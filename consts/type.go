@@ -33,7 +33,7 @@ const (
 	RedisRetTypeMemberScore RetType = 8 // 有序成员
 )
 
-func GetRedisRetType(op string, withscores, countExists bool) RetType {
+func GetRedisRetType(op string, withScores, countExists bool) RetType {
 	switch op {
 	case OpGet, OpGetSet, OpHGet:
 		return RedisRetTypeString
@@ -56,7 +56,7 @@ func GetRedisRetType(op string, withscores, countExists bool) RetType {
 	case OpHGetAll, OpHMGet:
 		return RedisRetTypeMapString
 	case OpZRange, OpZRangeByScore, OpZRevRange, OpZRevRangeByScore:
-		if withscores {
+		if withScores {
 			return RedisRetTypeMemberScore
 		} else {
 			return RedisRetTypeStrings
@@ -130,15 +130,6 @@ var (
 		{"KEEPTTL", 1, false}, // KEEPTTL   * Retain the time to live associated with the key.
 	}
 
-	SetExParams = []*RedisParamInfo{
-		{"seconds", 2, true}, // seconds * Set the specified expire time, in seconds (a positive integer).
-	}
-
-	SetGetBitParams = []*RedisParamInfo{
-		{"offset", 2, true},
-		{"value", 2, true},
-	}
-
 	// BitCountParams [start end [BYTE | BIT]]
 	BitCountParams = []*RedisParamInfo{
 		{"start", 2, true},
@@ -147,11 +138,37 @@ var (
 		{"BIT", 1, false},
 	}
 
-	CountParams = []*RedisParamInfo{
-		{"count", 2, true},
+	// ZRangeParams start stop [BYSCORE | BYLEX] [REV] [LIMIT offset count] [WITHSCORES]
+	ZRangeParams = []*RedisParamInfo{
+		{"start", 2, true},
+		{"stop", 2, true},
+		{"BYSCORE", 1, false},
+		{"BYLEX", 1, false},
+		{"REV", 1, false},
+		{"LIMIT", 3, false},
+		{"WITHSCORES", 1, false},
 	}
 
-	SMoveParams = []*RedisParamInfo{
-		{"destination", 2, true},
+	// ZRangeByScoreParams min max [WITHSCORES] [LIMIT offset count]
+	ZRangeByScoreParams = []*RedisParamInfo{
+		{"min", 2, true},
+		{"max", 2, true},
+		{"WITHSCORES", 1, false},
+		{"LIMIT", 3, false},
+	}
+
+	// ZRevRangeParams start stop [WITHSCORES]
+	ZRevRangeParams = []*RedisParamInfo{
+		{"start", 2, true},
+		{"stop", 2, true},
+		{"WITHSCORES", 1, false},
+	}
+
+	// ZRevRangeByScoreParams max min [WITHSCORES] [LIMIT offset count]
+	ZRevRangeByScoreParams = []*RedisParamInfo{
+		{"max", 2, true},
+		{"min", 2, true},
+		{"WITHSCORES", 1, false},
+		{"LIMIT", 3, false},
 	}
 )

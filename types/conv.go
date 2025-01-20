@@ -80,7 +80,6 @@ func ToInt64(value interface{}) (int64, error) {
 	if value == nil {
 		return 0, nil
 	}
-
 	switch v := value.(type) {
 	case int64:
 		return v, nil

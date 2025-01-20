@@ -35,7 +35,7 @@ func (m Map) GetString(key string) (ret string, exist bool) {
 	}
 
 	if value == nil {
-		return "", false
+		return "", true
 	}
 
 	return ToString(value), true
@@ -65,7 +65,7 @@ func (m Map) GetBool(key string) (ret bool, exist bool) {
 	}
 
 	if value == nil {
-		return false, false
+		return false, true
 	}
 
 	return ToBool(value), true
@@ -82,7 +82,7 @@ func (m Map) GetInt64(key string) (ret int64, exist bool, err error) {
 	}
 
 	if value == nil {
-		return 0, false, nil
+		return 0, true, nil
 	}
 
 	tmp, err := ToInt64(value)
@@ -100,7 +100,7 @@ func (m Map) GetUint64(key string) (ret uint64, exist bool, err error) {
 	}
 
 	if value == nil {
-		return 0, false, nil
+		return 0, true, nil
 	}
 
 	tmp, err := ToUint64(value)
@@ -118,7 +118,7 @@ func (m Map) GetFloat64(key string) (ret float64, exist bool, err error) {
 	}
 
 	if value == nil {
-		return 0, false, nil
+		return 0, true, nil
 	}
 
 	ret, err = ToFloat64(value)
@@ -176,7 +176,7 @@ func (m Map) GetTime(key string, loc *time.Location, layout ...string) (ret time
 	}
 
 	if value == nil {
-		return time.Time{}, false, nil
+		return time.Time{}, true, nil
 	}
 
 	ret, err = ParseTime(value, loc, layout...)
@@ -212,7 +212,7 @@ func (m Map) GetStringArray(key string) (ret []string, exist bool, err error) {
 	}
 
 	if value == nil {
-		return nil, false, nil
+		return nil, true, nil
 	}
 
 	ret, err = ToStringArray(value)
@@ -230,7 +230,7 @@ func (m Map) GetInt64Array(key string) (ret []int64, exist bool, err error) {
 	}
 
 	if value == nil {
-		return nil, false, nil
+		return nil, true, nil
 	}
 
 	ret, err = ToInt64Array(value)
@@ -248,7 +248,7 @@ func (m Map) GetUint64Array(key string) (ret []uint64, exist bool, err error) {
 	}
 
 	if value == nil {
-		return nil, false, nil
+		return nil, true, nil
 	}
 
 	ret, err = ToUint64Array(value)
@@ -266,7 +266,7 @@ func (m Map) GetFloat64Array(key string) (ret []float64, exist bool, err error) 
 	}
 
 	if value == nil {
-		return nil, false, nil
+		return nil, true, nil
 	}
 
 	ret, err = ToFloat64Array(value)
