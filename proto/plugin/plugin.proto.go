@@ -44,10 +44,11 @@ type Request struct {
 	Size   int       `json:"size,omitempty"`   // size per page
 	From   uint64    `json:"from,omitempty"`   // offset
 
-	// data update
-	Val   interface{}              `json:"val,omitempty"`   // set val (not map/[]map)
-	Data  types.Map                `json:"data,omitempty"`  // add/update one data
-	Datas []map[string]interface{} `json:"datas,omitempty"` // batch add/update data
+	// data maintain
+	Val   interface{}              `json:"val,omitempty"`   // 单条记录 val (not map/[]map)
+	Data  map[string]interface{}   `json:"data,omitempty"`  // add/update one map data
+	Datas []map[string]interface{} `json:"datas,omitempty"` // batch add/update map data
+	Args  []interface{}            `json:"args,omitempty"`  // multiple args, 还可用于 query 语句的参数，或者 redis 协议，如 MGET、HMGET、HDEL 等
 
 	// group by
 	Group  []string  `json:"group,omitempty"`  // group by
@@ -72,8 +73,7 @@ type Request struct {
 	Params types.Map `json:"params,omitempty"`
 
 	// query
-	Query string        `json:"query,omitempty"` // 直接送 query 语句，需要拥有库的 表权限、或 root 权限。具体参数为 args
-	Args  []interface{} `json:"args,omitempty"`  // args 主要用于 query 语句的参数，还可能用于 redis 协议，如 MGET、HMGET、HDEL 等， args 参数的数据类型存于 data_type
+	Query string `json:"query,omitempty"` // 直接送 query 语句，需要拥有库的 表权限、或 root 权限。具体参数为 args
 
 	// db address will be changing if Addr is set by plugin
 	Addr *util.DBAddress
