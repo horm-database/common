@@ -46,8 +46,8 @@ type Request struct {
 
 	// data maintain
 	Val   interface{}              `json:"val,omitempty"`   // 单条记录 val (not map/[]map)
-	Data  map[string]interface{}   `json:"data,omitempty"`  // add/update one map data
-	Datas []map[string]interface{} `json:"datas,omitempty"` // batch add/update map data
+	Data  map[string]interface{}   `json:"data,omitempty"`  // maintain one map data
+	Datas []map[string]interface{} `json:"datas,omitempty"` // maintain multiple map data
 	Args  []interface{}            `json:"args,omitempty"`  // multiple args, 还可用于 query 语句的参数，或者 redis 协议，如 MGET、HMGET、HDEL 等
 
 	// group by
@@ -73,7 +73,7 @@ type Request struct {
 	Params types.Map `json:"params,omitempty"`
 
 	// query
-	Query string `json:"query,omitempty"` // 直接送 query 语句，需要拥有库的 表权限、或 root 权限。具体参数为 args
+	Query string `json:"query,omitempty"` // 直接送 query 语句，需要拥有库的表操作权限、或 root 权限。具体参数为 args
 
 	// db address will be changing if Addr is set by plugin
 	Addr *util.DBAddress
