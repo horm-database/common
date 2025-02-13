@@ -18,7 +18,6 @@ import (
 	"github.com/horm-database/common/proto"
 	"github.com/horm-database/common/proto/sql"
 	"github.com/horm-database/common/types"
-	"github.com/horm-database/common/util"
 )
 
 // Header 请求头部，通过 extend["request_header"] 传入插件
@@ -45,10 +44,10 @@ type Request struct {
 	From   uint64    `json:"from,omitempty"`   // offset
 
 	// data maintain
-	Val   interface{}              `json:"val,omitempty"`   // 单条记录 val (not map/[]map)
+	Val   interface{}              `json:"val,omitempty"`   // 单条记录 val (not map)
 	Data  map[string]interface{}   `json:"data,omitempty"`  // maintain one map data
 	Datas []map[string]interface{} `json:"datas,omitempty"` // maintain multiple map data
-	Args  []interface{}            `json:"args,omitempty"`  // multiple args, 还可用于 query 语句的参数，或者 redis 协议，如 MGET、HMGET、HDEL 等
+	Args  []interface{}            `json:"args,omitempty"`  // multiple args, 当维护的是单条记录，但是该记录是一个数组结构，最好是放到 val 里面去，args 还可用于 query 语句的参数，或者 redis 协议，如 MGET、HMGET、HDEL 等
 
 	// group by
 	Group  []string  `json:"group,omitempty"`  // group by
@@ -74,9 +73,6 @@ type Request struct {
 
 	// query
 	Query string `json:"query,omitempty"` // 直接送 query 语句，需要拥有库的表操作权限、或 root 权限。具体参数为 args
-
-	// db address will be changing if Addr is set by plugin
-	Addr *util.DBAddress
 }
 
 // Response 插件返回信息
